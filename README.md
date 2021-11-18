@@ -20,7 +20,7 @@ The following boards *should* work without any code modification, but have not b
 
 ## Build Instructions
 
-- Download and extract the project package from [Releases](releases/)
+- Download and extract the project package from [Releases](https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/releases/)
 - Download and open [ModusToolbox&trade; software](https://www.cypress.com/products/modustoolbox-software-environment) v2.2 or later (tested with v2.3)
 - Select a name for your workspace when prompted for a workspace name.
 - Click the **New Application** link in the **Quick Panel** (or, use **File** > **New** > **ModusToolbox Application**). This launches the [Project Creator](https://www.cypress.com/ModusToolboxProjectCreator) tool.
