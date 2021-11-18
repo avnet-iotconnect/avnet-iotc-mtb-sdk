@@ -26,7 +26,7 @@ The following boards *should* work without any code modification, but have not b
 - Click the **New Application** link in the **Quick Panel** (or, use **File** > **New** > **ModusToolbox Application**). This launches the [Project Creator](https://www.cypress.com/ModusToolboxProjectCreator) tool.
 - Pick a kit supported by the code example from the list shown in the **Project Creator - Choose Board Support Package (BSP)** dialog and click **Next**
 - In the **Project Creator - Select Application** dialog, click on the **Import** button and 
-   navigate to the clone of this repo or downloaded package's **sampple/basic-sample** directory and click **Open**. 
+   navigate to the clone of this repo or downloaded package's **sample/basic-sample** directory and click **Open**. 
 - Click the checkbox next to the **basic-sample** application in the list and chick **Create**.
 - Modify samples/basic-sample/configs/app_config.h per your IoTConnect device and account info.
 - At this point you should be able to build and run the application by using the options in the **Quick Panel** on bottom left of the screen.   
