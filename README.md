@@ -20,7 +20,7 @@ The following boards *should* work without any code modification, but have not b
 ## Build Instructions
 
 - Download and extract the project package from [Releases](https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/releases/)
-- Download and open [ModusToolbox&trade; software](https://www.cypress.com/products/modustoolbox-software-environment) v2.2 or later (tested with v2.3)
+- Download, install and open [ModusToolbox&trade; software](https://www.cypress.com/products/modustoolbox-software-environment) v2.2 or later (tested with v2.3). On Windows, ensure that you **Run As Adminstrator** the installation package so that the neccessary drivers can be installed.
 - Select a name for your workspace when prompted for a workspace name.
 - Click the **New Application** link in the **Quick Panel** (or, use **File** > **New** > **ModusToolbox Application**). This launches the [Project Creator](https://www.cypress.com/ModusToolboxProjectCreator) tool.
 - Pick a kit supported by the code example from the list shown in the **Project Creator - Choose Board Support Package (BSP)** dialog and click **Next**
@@ -31,5 +31,5 @@ The following boards *should* work without any code modification, but have not b
 - At this point you should be able to build and run the application by using the options in the **Quick Panel** on bottom left of the screen.   
 - You should see the application output in your terminal emulator.
 
-NOTE: If you cloned the repo, note that the SDK will be pulled from this GitHub URL and modifying the contents of iotc-modustoolbox-sdk will have no effect on your code execution. 
+NOTE: If you cloned the repo, note that the SDK will be pulled from this GitHub URL instead of being used from the local repo, and modifying the contents of iotc-modustoolbox-sdk will have no effect on your code execution. 
 If you need to make temporary modifications to the SDK, you can modify the contents in the mtb_shared directory.
