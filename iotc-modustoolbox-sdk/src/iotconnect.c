@@ -314,7 +314,7 @@ int iotconnect_sdk_init() {
     cy_rslt_t ret_cy = iotc_mqtt_client_init(&mqtt_config);
     if (ret_cy) {
         printf("Failed to connect!\n");
-        ret = -6;
+        return -6;
     }
     return 0;
 
