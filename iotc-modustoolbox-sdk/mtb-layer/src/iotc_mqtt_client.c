@@ -87,8 +87,6 @@ static IotConnectC2dCallback c2d_msg_cb = NULL; // callback for inbound messages
 static IotConnectStatusCallback status_cb = NULL; // callback for connection status
 
 static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, void *user_data) {
-    cy_mqtt_publish_info_t *received_msg;
-
     (void) mqtt_handle;
     (void) user_data;
 
@@ -110,6 +108,8 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
     }
 
     case CY_MQTT_EVENT_TYPE_SUBSCRIPTION_MESSAGE_RECEIVE: {
+        cy_mqtt_publish_info_t *received_msg;
+
 
         /* Incoming MQTT message has been received. Send this message to
          * the subscriber callback function to handle it.
@@ -193,7 +193,7 @@ static cy_rslt_t mqtt_connect(IotConnectMqttConfig *mqtt_config) {
 
     printf("Exceeded maximum MQTT connection attempts\n");
     printf("MQTT connection failed after retrying for %d mins\n",
-            (int) (IOTC_MQTT_CONN_RETRY_INTERVAL_MS * IOTC_MAX_MQTT_CONN_RETRIES) / 60000u);
+            (int) ((IOTC_MQTT_CONN_RETRY_INTERVAL_MS * IOTC_MAX_MQTT_CONN_RETRIES) / 60000u));
     return result;
 }
 

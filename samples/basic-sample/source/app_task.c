@@ -141,7 +141,7 @@ static cy_rslt_t wifi_connect(void) {
 
         printf("\nExceeded maximum Wi-Fi connection attempts!\n");
         printf("Wi-Fi connection failed after retrying for %d mins\n",
-                (int) (WIFI_CONN_RETRY_INTERVAL_MS * MAX_WIFI_CONN_RETRIES) / 60000u);
+                (int) ((WIFI_CONN_RETRY_INTERVAL_MS * MAX_WIFI_CONN_RETRIES) / 60000u));
     }
     return result;
 }
@@ -219,7 +219,7 @@ void app_task(void *pvParameters) {
             goto exit_cleanup;
         }
 
-        for (int i = 0; iotconnect_sdk_is_connected() && i < 3; i++) {
+        for (int j = 0; iotconnect_sdk_is_connected() && j < 3; j++) {
             publish_telemetry();
             vTaskDelay(pdMS_TO_TICKS(10000));
         }
