@@ -1,0 +1,47 @@
+<middleware>
+    <middleware>
+        <name>iotc-modustoolbox-sdk</name>
+        <id>iotc-modustoolbox-sdk</id>
+        <uri>https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk</uri>
+        <desc>This SDK is used for Connecting to Avnet IoTConnect platform.</desc>
+        <category>Middleware</category>
+        <req_capabilities>cat1</req_capabilities>
+        <versions>
+            <version flow_version="1.0,2.0" tools_min_version="3.0.0">
+                <num>v1.0.0</num>
+                <commit>v1.0.0</commit>
+                <desc>release-v1.0.0</desc>
+            </version>
+        </versions>
+    </middleware>
+    <middleware>
+        <name>iotc-c-lib</name>
+        <id>iotc-c-lib</id>
+        <uri>https://github.com/avnet-iotconnect/iotc-c-lib</uri>
+        <desc>iotc-c-lib</desc>
+        <category>Middleware</category>
+        <req_capabilities>cat1</req_capabilities>
+        <versions>
+            <version flow_version="1.0,2.0" tools_min_version="3.0.0">
+                <num>v2.0.5</num>
+                <commit>v2.0.5</commit>
+                <desc>release-v2.0.5</desc>
+            </version>
+        </versions>
+    </middleware>
+    <middleware>
+        <name>cJSON</name>
+        <id>cJSON</id>
+        <uri>https://github.com/DaveGamble/cJSON</uri>
+        <desc>cJSON lib</desc>
+        <category>Middleware</category>
+        <req_capabilities>cat1</req_capabilities>
+        <versions>
+            <version flow_version="1.0,2.0" tools_min_version="3.0.0">
+                <num>v1.7.15</num>
+                <commit>v1.7.15</commit>
+                <desc>release-v1.7.15</desc>
+            </version>
+        </versions>
+    </middleware>
+</middleware>

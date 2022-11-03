@@ -1,0 +1,17 @@
+<apps version="2.0">
+  <app keywords="psoc6,avnet,iotconnect" req_capabilities_v2="[cy8ckit_062-wifi_bt,cy8ckit_062s2_43012]">
+    <name>basic-sample</name>
+    <category>Sensing</category>
+    <id>avnet-mtb-example-basic-sample</id>
+    <uri>https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/tree/main/samples/basic-sample</uri>
+    <description><![CDATA[This code example demonstrates how to connect to IoTConnect]]></description>
+    <req_capabilities>psoc6</req_capabilities>
+    <versions>
+		<version flow_version="1.0,2.0" tools_min_version="3.0.0">
+			<num>v1.0.0</num>
+            <commit>v1.0.0</commit>
+            <desc>release-v1.0.0</desc>
+        </version>	
+    </versions>
+  </app>
+</apps>
