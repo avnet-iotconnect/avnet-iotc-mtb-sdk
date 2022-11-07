@@ -11,8 +11,8 @@
     <req_capabilities>psoc6 wifi cyw43xxx led switch</req_capabilities>
     <versions>
       <version flow_version="2.0" tools_min_version="3.0.0" req_capabilities_per_version="bsp_gen4">
-        <num></num>
-        <commit></commit>
+        <num>v1.0.0</num>
+        <commit>v1.0.0</commit>
       </version>
     </versions>
   </app>
