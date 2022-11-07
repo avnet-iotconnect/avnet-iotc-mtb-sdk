@@ -3,14 +3,14 @@
     <name>basic-sample</name>
     <category>Sensing</category>
     <id>avnet-mtb-example-basic-sample</id>
-    <uri>https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/tree/main/samples/basic-sample</uri>
+    <uri>https://github.com/Infineon/mtb-example-empty-app</uri>
     <description><![CDATA[This code example demonstrates how to connect to IoTConnect]]></description>
     <req_capabilities>psoc6</req_capabilities>
     <versions>
 		<version flow_version="1.0,2.0" tools_min_version="3.0.0">
-			<num>v1.0.0</num>
-            <commit>v1.0.0</commit>
-            <desc>release-v1.0.0</desc>
+			<num>release v4.0.0</num>
+            <commit>release v4.0.0</commit>
+            <desc>release-v4.0.0</desc>
         </version>	
     </versions>
   </app>
