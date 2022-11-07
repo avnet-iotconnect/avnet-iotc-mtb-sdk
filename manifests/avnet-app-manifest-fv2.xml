@@ -1,17 +1,55 @@
 <apps version="2.0">
-  <app keywords="psoc6,avnet,iotconnect" req_capabilities_v2="[cy8ckit_062-wifi_bt,cy8ckit_062s2_43012]">
-    <name>basic-sample</name>
-    <category>Sensing</category>
-    <id>avnet-mtb-example-basic-sample</id>
-    <uri>https://github.com/Infineon/mtb-example-empty-app</uri>
-    <description><![CDATA[This code example demonstrates how to connect to IoTConnect]]></description>
-    <req_capabilities>psoc6</req_capabilities>
+  <app keywords="mtb-flow,psoc6,mqtt,client,wifi,aws,mosquitto" req_capabilities_v2="psoc6 wifi cyw43xxx led switch [flash_2048k, flash_1024k, flash_512k]">
+    <name>test sample</name>
+    <id>mtb-test-example</id>
+    <category>Wi-Fi</category>
+    <uri>https://github.com/Infineon/mtb-example-wifi-mqtt-client</uri>
+    <description><![CDATA[This code example demonstrates implementing an MQTT Client using the MQTT Client library. The library uses the AWS IoT device SDK Port library and implements the glue layer that is required for the library to work with Infineon&#8482; connectivity platforms. This example can be ported to CM0+ core using a make variable CORE from Makefile.
+    <br><br>For more details, see the <a href="https://github.com/Infineon/mtb-example-wifi-mqtt-client/blob/master/README.md">README on GitHub</a>.
+    <br><br><b>License Disclaimer:</b><br><br>
+    This code example makes use of the lwIP open-source TCP/IP stack. Creating a project from this template will cause lwIP to be downloaded on your computer. It is your responsibility to understand and accept the lwIP license.<br><br>Creating a project from this template will cause Mbed TLS to be downloaded on your computer. It is your responsibility to understand and accept the Mbed TLS license and regional use restrictions (including abiding by all applicable export control laws).]]></description>
+    <req_capabilities>psoc6 wifi cyw43xxx led switch</req_capabilities>
     <versions>
-		<version flow_version="1.0,2.0" tools_min_version="3.0.0">
-			<num>release v4.0.0</num>
-            <commit>release v4.0.0</commit>
-            <desc>release-v4.0.0</desc>
-        </version>	
+      <version flow_version="2.0" tools_min_version="3.0.0" req_capabilities_per_version="bsp_gen4">
+        <num>Latest 5.X release</num>
+        <commit>latest-v5.X</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="3.0.0" req_capabilities_per_version="bsp_gen4">
+        <num>5.0.0 release</num>
+        <commit>release-v5.0.0</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.4.0" req_capabilities_per_version="bsp_gen3">
+        <num>Latest 4.X release</num>
+        <commit>latest-v4.X</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.4.0" req_capabilities_per_version="bsp_gen3">
+        <num>4.0.0 release</num>
+        <commit>release-v4.0.0</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>Latest 3.X release</num>
+        <commit>latest-v3.X</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>3.1.0 release</num>
+        <commit>release-v3.1.0</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>3.0.0 release</num>
+        <commit>release-v3.0.0</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>Latest 2.X release</num>
+        <commit>latest-v2.X</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>2.1.0 release</num>
+        <commit>release-v2.1.0</commit>
+      </version>
+      <version flow_version="2.0" tools_min_version="2.2.0" req_capabilities_per_version="bsp_gen2">
+        <num>2.0.0 release</num>
+        <commit>release-v2.0.0</commit>
+      </version>
     </versions>
   </app>
 </apps>
