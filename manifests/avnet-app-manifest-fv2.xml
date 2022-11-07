@@ -3,7 +3,7 @@
     <name>Avnet basic sample</name>
     <id>mtb-avnet-basic-example</id>
     <category>Wi-Fi</category>
-    <uri>https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk</uri>
+    <uri>https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/tree/main/samples/basic-sample</uri>
     <description><![CDATA[Basic example for connecting to Avnet IoTConnect platform.
     <br><br>For more details, see the <a href="https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/blob/main/README.md">README on GitHub</a>.
     <br><br><b>License Disclaimer:</b><br><br>
@@ -11,8 +11,8 @@
     <req_capabilities>psoc6 wifi cyw43xxx led switch</req_capabilities>
     <versions>
       <version flow_version="2.0" tools_min_version="3.0.0" req_capabilities_per_version="bsp_gen4">
-        <num>v1.0.0</num>
-        <commit>v1.0.0</commit>
+        <num></num>
+        <commit></commit>
       </version>
     </versions>
   </app>
