@@ -17,6 +17,12 @@ The following boards *should* work without any code modification, but have not b
 - [PSoC&trade; 62S2 evaluation kit](https://www.cypress.com/CY8CEVAL-062S2) (`CY8CEVAL-062S2-LAI-4373M2`)
 
 
+## Dependencies
+The project uses the following dependent projects as git submodules:
+
+* [cJSON](https://github.com/DaveGamble/cJSON.git) v1.7.15
+* [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git) v2.0.5
+
 ## Build Instructions
 
 - Download and extract the project package from [Releases](https://github.com/avnet-iotconnect/iotc-modustoolbox-sdk/releases/)
