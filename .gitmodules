@@ -4,3 +4,6 @@
 [submodule "lib/iotc-c-lib"]
 	path = lib/iotc-c-lib
 	url = https://github.com/avnet-iotconnect/iotc-c-lib
+[submodule "lib/ota-update"]
+	path = lib/ota-update
+	url = https://github.com/Infineon/ota-update
