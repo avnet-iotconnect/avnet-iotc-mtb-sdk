@@ -59,9 +59,10 @@ typedef void (*IotConnectStatusCallback)(IotConnectConnectionStatus data);
 
 typedef struct {
     char *env;    // Environment name. Contact your representative for details.
-    char *host;    // Environment name. Contact your representative for details.
+    char *host;   // MQTT host name.
     char *cpid;   // Settings -> Company Profile.
     char *duid;   // Name of the device.
+    char *cd;	  // cd value of telemetry data
     IotConnectAuthInfo auth;
     IotclOtaCallback ota_cb; // callback for OTA events.
     IotclCommandCallback cmd_cb; // callback for command events.
@@ -72,7 +73,7 @@ typedef struct {
 
 IotConnectClientConfig *iotconnect_sdk_init_and_get_config();
 
-int iotconnect_sdk_init();
+int iotconnect_sdk_init(void);
 
 bool iotconnect_sdk_is_connected();
 

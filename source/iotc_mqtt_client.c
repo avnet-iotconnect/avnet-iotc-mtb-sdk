@@ -296,8 +296,8 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
             };
 
     cy_awsport_ssl_credentials_t security_info = { 0 };
-    security_info.root_ca = CERT_BALTIMORE_ROOT_CA;
-    security_info.root_ca_size = sizeof(CERT_BALTIMORE_ROOT_CA);
+    security_info.root_ca = AMAZON_ROOTCA1;
+    security_info.root_ca_size = sizeof(AMAZON_ROOTCA1);
 
     // mqtt_connect handles different auth types
     if (c->auth->type == IOTC_AT_X509) {

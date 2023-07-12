@@ -20,6 +20,11 @@
 #define IOTC_DISCOVERY_PATH_FORMAT "/api/sdk/cpid/%s/lang/M_C/ver/2.0/env/%s"
 #define IOTC_SYNC_PATH_FORMAT "%ssync?"
 
+
+#define PUB_TOPIC_FORMAT	"devices/%s/messages/events/"
+#define SUB_TOPIC_FORMAT	"iot/%s/cmd"
+#define USER_NAME_FORMAT    "%s/%s"
+
 static IotclDiscoveryResponse *discovery_response = NULL;
 static IotclSyncResponse *sync_response = NULL;
 static IotConnectClientConfig config = { 0 };
@@ -187,18 +192,6 @@ cy_rslt_t iotconnect_sdk_send_packet_qos(const char *data, int qos) {
 
 static void on_message_intercept(IotclEventData data, IotConnectEventType type) {
     switch (type) {
-    case ON_FORCE_SYNC:
-        iotconnect_sdk_disconnect();
-        iotcl_discovery_free_sync_response(sync_response);
-        sync_response = NULL;
-        sync_response = run_http_sync(config.cpid, config.duid);
-        if (NULL == sync_response) {
-            printf("Unable to run HTTP sync on ON_FORCE_SYNC \n");
-            return;
-        }
-        printf("Got ON_FORCE_SYNC. Disconnecting.\n");
-        iotconnect_sdk_disconnect(); // client will get notification that we disconnected and will reinit
-        break;
     case ON_CLOSE:
         printf("Got a disconnect request. Closing the mqtt connection. Device restart is required.\n");
         iotconnect_sdk_disconnect();
@@ -254,11 +247,55 @@ bool validate_auth_type() {
     }
     return ret;
 }
+static IotclSyncResponse* populate_sync_response_aws(void) {
+    IotclSyncResponse* aws_response = (IotclSyncResponse* ) calloc(1, sizeof(IotclSyncResponse));
+    if (NULL == aws_response) {
+        return NULL;
+    }
+
+    aws_response->broker.host = (char* )malloc(strlen(config.host) + 1);
+	if (NULL == aws_response->broker.host) {
+		goto cleanup;
+	}
+	strcpy(aws_response->broker.host, config.host);
+
+	aws_response->broker.client_id = (char* )malloc(strlen(config.duid) + 1);
+	if (NULL == aws_response->broker.client_id) {
+		goto cleanup;
+	}
+	strcpy(aws_response->broker.client_id, config.duid);
+
+	aws_response->broker.user_name = (char* )malloc(sizeof(USER_NAME_FORMAT) + strlen(config.duid) + strlen(config.host) - 4);
+	if (NULL == aws_response->broker.user_name) {
+		goto cleanup;
+	}
+    sprintf(aws_response->broker.user_name, USER_NAME_FORMAT, config.host, config.duid);
+
+    aws_response->broker.sub_topic = (char* )malloc(sizeof(SUB_TOPIC_FORMAT) + strlen(config.duid) - 2);
+	if (NULL == aws_response->broker.sub_topic) {
+		goto cleanup;
+	}
+	sprintf(aws_response->broker.sub_topic, SUB_TOPIC_FORMAT, config.duid);
+
+	aws_response->broker.pub_topic = (char* )malloc(sizeof(PUB_TOPIC_FORMAT) + strlen(config.duid) - 2);
+	if (NULL == aws_response->broker.pub_topic) {
+		goto cleanup;
+	}
+	sprintf(aws_response->broker.pub_topic, PUB_TOPIC_FORMAT, config.duid);
+
+	aws_response->broker.pass = NULL;
+
+	return aws_response;
+
+	cleanup:
+	iotcl_discovery_free_sync_response(aws_response);
+	return NULL;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////
 // this the Initialization os IoTConnect SDK
-int iotconnect_sdk_init() {
-
+int iotconnect_sdk_init(void) {
+/*
     if (!discovery_response) {
         discovery_response = run_http_discovery(config.cpid, config.env);
         if (NULL == discovery_response) {
@@ -275,10 +312,12 @@ int iotconnect_sdk_init() {
         }
         printf("Sync response parsing successful.\n");
     }
-
+*/
     if (!validate_auth_type()) {
         return -3;
     }
+
+#if 0
     char cpid_buff[5];
     strncpy(cpid_buff, sync_response->cpid, 4);
     cpid_buff[4] = 0;
@@ -289,22 +328,32 @@ int iotconnect_sdk_init() {
         printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required.\n");
         return -4;
     }
+#endif
 
-    lib_config.device.env = config.env;
-    lib_config.device.cpid = config.cpid;
     lib_config.device.duid = config.duid;
 
     lib_config.event_functions.ota_cb = config.ota_cb;
     lib_config.event_functions.cmd_cb = config.cmd_cb;
     lib_config.event_functions.msg_cb = on_message_intercept;
 
-    lib_config.telemetry.dtg = sync_response->dtg;
+    lib_config.telemetry.cd = config.cd;
 
-    int ret = iotcl_init(&lib_config);
+    int ret = iotcl_init_v2(&lib_config);
     if (!ret) {
         printf("Failed to initialize the IoTConnect Lib\n");
         return -5;
     }
+
+    sync_response = populate_sync_response_aws();
+	if (sync_response == NULL) {
+		printf("Sync response is empty!\n");
+		return -2;
+	}
+	printf("\nhost is %s\n", sync_response->broker.host);
+	printf("client_id is %s\n", sync_response->broker.client_id);
+	printf("user name is %s\n", sync_response->broker.user_name);
+	printf("pub_topic is %s\n", sync_response->broker.pub_topic);
+	printf("sub_topic is %s\n", sync_response->broker.sub_topic);
 
     IotConnectMqttConfig mqtt_config = { 0 };
     mqtt_config.auth = &config.auth;
