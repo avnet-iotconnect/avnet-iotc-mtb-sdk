@@ -2,7 +2,7 @@
  Copyright: Avnet 2023
  Created by Shu Liu <shu.liu@avnet.com> on 05/15/23.
  -----------------------------------------------------------------*/
-
+#ifdef OTA_SUPPORT=1
 /* Middleware libraries */
 //#include "cy_retarget_io.h"
 #include "cy_log.h"
@@ -279,3 +279,4 @@ cy_rslt_t iotc_ota_start(char *host, char *path, cy_ota_callback_t usr_ota_cb) {
 	}
 	return result;
 }
+#endif
