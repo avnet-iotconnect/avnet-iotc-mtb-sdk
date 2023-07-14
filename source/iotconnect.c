@@ -344,12 +344,15 @@ int iotconnect_sdk_init(void) {
         return -5;
     }
 
-    sync_response = populate_sync_response_aws();
-	if (sync_response == NULL) {
-		printf("Sync response is empty!\n");
-		return -2;
-	}
-	printf("\nhost is %s\n", sync_response->broker.host);
+    if (!sync_response) {
+        sync_response = populate_sync_response_aws();
+        if (NULL == sync_response) {
+            return -2;
+        }
+        printf("Sync response parsing successful.\n");
+    }
+
+	printf("\nHost is %s\n", sync_response->broker.host);
 	printf("client_id is %s\n", sync_response->broker.client_id);
 	printf("user name is %s\n", sync_response->broker.user_name);
 	printf("pub_topic is %s\n", sync_response->broker.pub_topic);
