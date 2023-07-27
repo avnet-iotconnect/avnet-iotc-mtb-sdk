@@ -2,7 +2,7 @@
  Copyright: Avnet 2023
  Created by Shu Liu <shu.liu@avnet.com> on 05/15/23.
 -----------------------------------------------------------------*/
-#ifdef OTA_SUPPORT=1
+#ifdef OTA_SUPPORT
 #include "cy_ota_api.h"
 
 // Call this once in the application
