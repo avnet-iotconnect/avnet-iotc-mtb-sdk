@@ -43,7 +43,11 @@
 
 /* Middleware libraries */
 #include "cy_retarget_io.h"
+
+#ifndef CY_RTOS_AWARE
 #include "cy_lwip.h"
+#endif
+
 #include "cy_mqtt_api.h"
 
 #include "cy_mqtt_api.h"
