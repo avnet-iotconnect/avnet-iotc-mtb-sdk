@@ -49,8 +49,6 @@
 #endif
 
 #include "cy_mqtt_api.h"
-
-#include "cy_mqtt_api.h"
 #include "clock.h"
 
 /* LwIP header files */
