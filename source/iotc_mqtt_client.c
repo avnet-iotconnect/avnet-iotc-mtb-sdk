@@ -43,10 +43,8 @@
 
 /* Middleware libraries */
 #include "cy_retarget_io.h"
-
-#ifndef CY_RTOS_AWARE
-#include "cy_lwip.h"
-#endif
+//#include "cy_lwip.h"
+#include "cy_mqtt_api.h"
 
 #include "cy_mqtt_api.h"
 #include "clock.h"
@@ -68,6 +66,9 @@
 #define SUBSCRIBER_TASK_QUEUE_LENGTH            (1u)
 
 #define MQTT_NETWORK_BUFFER_SIZE          ( 4 * CY_MQTT_MIN_NETWORK_BUFFER_SIZE )
+
+/*String that describes the MQTT handle that is being created in order to uniquely identify it*/
+#define MQTT_HANDLE_DESCRIPTOR            "MQTThandleID"
 
 /* Maximum MQTT connection re-connection limit. */
 #ifndef IOTC_MAX_MQTT_CONN_RETRIES
@@ -310,13 +311,24 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     }
 
     /* Create the MQTT client instance. */
-    result = cy_mqtt_create(mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, &security_info, &broker_info,
-            (cy_mqtt_callback_t) mqtt_event_callback, NULL, &mqtt_connection);
+    result = cy_mqtt_create(mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, &security_info, &broker_info, MQTT_HANDLE_DESCRIPTOR, &mqtt_connection);
 
     if (result) {
         printf("Failed to create the MQTT client. Error was:0x%08lx\n", result);
         iotc_cleanup_mqtt();
         return result;
+    }
+
+    if(CY_RSLT_SUCCESS == result)
+    {
+        /* Register a MQTT event callback */
+        result = cy_mqtt_register_event_callback( mqtt_connection, (cy_mqtt_callback_t)mqtt_event_callback, NULL );
+        if(CY_RSLT_SUCCESS != result)
+        {
+            printf("\nFailed to initialize MQTT library.\n");
+            iotc_cleanup_mqtt();
+            return result;
+        }
     }
 
     result = mqtt_connect(c);
