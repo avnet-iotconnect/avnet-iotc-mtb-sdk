@@ -5,8 +5,7 @@ This code is based on the [mtb-example-anycloud-mqtt-client](https://github.com/
 
 ## Dependencies
 The project uses the following dependent projects as git submodules:
-* [cJSON](https://github.com/DaveGamble/cJSON.git) v1.7.15
-* [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git) v2.0.5
+* [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git) v3.0.1
 
 ## Contributing To This Project
 When contributing to this project, please follow the contributing guidelines for [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib/blob/master/CONTRIBUTING.md) where applicable and possible.
