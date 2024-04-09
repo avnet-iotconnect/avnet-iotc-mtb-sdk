@@ -1,7 +1,7 @@
-//
-// Copyright: Avnet 2021
-// Created by Nik Markovic <nikola.markovic@avnet.com> on 11/11/21.
-//
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
 
 #ifndef IOTC_HTTP_CLIENT_H
 #define IOTC_HTTP_CLIENT_H

@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
+
 /*-----------------------------------------------------------------
  Copyright: Avnet 2023
  Created by Shu Liu <shu.liu@avnet.com> on 05/15/23.
