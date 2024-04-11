@@ -68,7 +68,7 @@ static int validate_response(IotConnectHttpResponse *response) {
     return IOTCL_SUCCESS;
 }
 
-static int run_http_identity(IotConnectConnectionType ct, const char *cpid, const char *env, const char* duid) {
+static int run_http_identity(IotConnectConnectionType ct, const char* duid, const char *cpid, const char *env) {
     IotConnectHttpResponse response = {0};
     IotclDraUrlContext discovery_url = {0};
     IotclDraUrlContext identity_url = {0};
@@ -115,8 +115,8 @@ static int run_http_identity(IotConnectConnectionType ct, const char *cpid, cons
     if (status) goto cleanup; // called function will print the error
 
     iotconnect_https_request(&response,
-                             iotcl_dra_url_get_hostname(&discovery_url),
-							 iotcl_dra_url_get_resource(&discovery_url),
+                             iotcl_dra_url_get_hostname(&identity_url),
+							 iotcl_dra_url_get_resource(&identity_url),
 							 NULL
     );
 

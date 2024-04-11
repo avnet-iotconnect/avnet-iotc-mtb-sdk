@@ -67,7 +67,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
         if (res != CY_RSLT_SUCCESS) {
             printf("Failed to connect to http server. Error=0x%08lx. ", res);
             if (i <= 0) {
-                printf("Giving up! Max retry count %d reached", IOTC_HTTP_CONNECT_MAX_RETRIES);
+                printf("Giving up! Max retry count %d reached\n", IOTC_HTTP_CONNECT_MAX_RETRIES);
                 goto cleanup_delete;
             } else {
                 printf("Retrying...\n");

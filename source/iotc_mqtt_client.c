@@ -282,10 +282,10 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     } else {
     	switch(c->connection_type) {
     	case IOTC_CT_AWS:
-    		c->x509_config->server_ca_cert = IOTCL_AMAZON_ROOT_CA1;
+    		security_info.root_ca = IOTCL_AMAZON_ROOT_CA1;
     		break;
     	case IOTC_CT_AZURE:
-    		c->x509_config->server_ca_cert = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
+    		security_info.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
     		break;
     	default:
     		// the SDK will check, but just in case

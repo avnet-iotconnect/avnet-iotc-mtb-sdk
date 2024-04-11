@@ -73,6 +73,6 @@ int iotc_mtb_time_obtain(const char *server) {
     timenow = time(NULL);
     char time_str_buffer[IOTCL_ISO_TIMESTAMP_STR_LEN + 1] = {0};
     iotcl_iso_timestamp_now(time_str_buffer, sizeof(time_str_buffer));
-    printf("Time received from NTP. Time now: %s!\n", time_str_buffer);
+    printf("Time received from NTP. Time now: %s (%lu)!\n", time_str_buffer, timenow);
     return 0;
 }
