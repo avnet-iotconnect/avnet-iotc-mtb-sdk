@@ -45,13 +45,12 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     taskEXIT_CRITICAL();
 }
 
-time_t timenow = 0;
+
 int iotc_mtb_time_obtain(const char *server) {
     u8_t reachable = 0;
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, server);
     sntp_init();
-    timenow = time(NULL);
     printf("Obtaining network time...");
     for (int i = 0; (reachable = sntp_getreachability(0)) == 0 && i < IOTC_MTB_TIME_MAX_TRIES; i++) {
         if (!reachable) {
@@ -70,9 +69,6 @@ int iotc_mtb_time_obtain(const char *server) {
         printf("No callback was received from SNTP module. Ensure that iotc_set_system_time_us is defined as SNTP_SET_SYSTEM_TIME_US callback!\n");
         return -1;
     }
-    timenow = time(NULL);
-    char time_str_buffer[IOTCL_ISO_TIMESTAMP_STR_LEN + 1] = {0};
-    iotcl_iso_timestamp_now(time_str_buffer, sizeof(time_str_buffer));
-    printf("Time received from NTP. Time now: %s (%lu)!\n", time_str_buffer, timenow);
+    printf("Time received from NTP. Time now: %ld\n", (long int)time(NULL));
     return 0;
 }
