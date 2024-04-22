@@ -20,7 +20,8 @@ typedef enum {
 } IotConnectConnectionStatus;
 
 typedef enum {
-    IOTC_CT_AWS = 1,
+	IOTC_CT_UNDEFINED = 0,
+    IOTC_CT_AWS,
     IOTC_CT_AZURE
 } IotConnectConnectionType;
 

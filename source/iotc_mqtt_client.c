@@ -276,6 +276,8 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
 
     cy_awsport_ssl_credentials_t security_info = { 0 };
 
+    security_info.sni_host_name = mc->host;
+    security_info.sni_host_name_size = strlen(mc->host) + 1; // yes, +1 !
 
     if (c->x509_config->server_ca_cert) {
     	security_info.root_ca = c->x509_config->server_ca_cert;
