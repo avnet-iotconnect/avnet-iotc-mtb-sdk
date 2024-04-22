@@ -10,7 +10,7 @@ $(SEARCH_iotc-c-lib)/lib/cJSON/test.c
 $(SEARCH_iotc-c-lib)/lib/cJSON/cJSON_Utils.c
 $(SEARCH_iotc-c-lib)/lib/cJSON/fuzzing
 
-# cJSON old location TODO: Remove once we ettle submodules
+# cJSON old location TODO: Remove once we settle submodules
 $(SEARCH_cJSON)/tests
 $(SEARCH_cJSON)/test.c
 $(SEARCH_cJSON)/cJSON_Utils.c
