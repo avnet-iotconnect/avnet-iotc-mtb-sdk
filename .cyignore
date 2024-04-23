@@ -1,19 +1,10 @@
 # c-lib unused code
-$(SEARCH_iotc-c-lib)/tests
-$(SEARCH_iotc-c-lib)/tools
-$(SEARCH_iotc-c-lib)/docs
-$(SEARCH_iotc-c-lib)/modules/heap-tracker
+lib/iotc-c-lib/tests
+lib/iotc-c-lib/tools
+lib/iotc-c-lib/docs
+lib/iotc-c-lib/modules/heap-tracker
 
 # cJSON unused code
-$(SEARCH_iotc-c-lib)/lib/cJSON/tests
-$(SEARCH_iotc-c-lib)/lib/cJSON/test.c
-$(SEARCH_iotc-c-lib)/lib/cJSON/cJSON_Utils.c
-$(SEARCH_iotc-c-lib)/lib/cJSON/fuzzing
-
-# cJSON old location TODO: Remove once we settle submodules
-$(SEARCH_cJSON)/tests
-$(SEARCH_cJSON)/test.c
-$(SEARCH_cJSON)/cJSON_Utils.c
-$(SEARCH_cJSON)/fuzzing
-$(SEARCH_iotc-modustoolbox-test)/samples
-samples
+lib/cJSON/tests
+lib/cJSON/test.c
+lib/cJSON/fuzzing
