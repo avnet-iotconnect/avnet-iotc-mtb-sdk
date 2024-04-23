@@ -5,6 +5,6 @@ lib/iotc-c-lib/docs
 lib/iotc-c-lib/modules/heap-tracker
 
 # cJSON unused code
-lib/cJSON/tests
-lib/cJSON/test.c
-lib/cJSON/fuzzing
+lib/iotc-c-lib/lib/cJSON/tests
+lib/iotc-c-lib/lib/cJSON/test.c
+lib/iotc-c-lib/lib/cJSON/fuzzing
