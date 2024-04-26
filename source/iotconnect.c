@@ -75,12 +75,23 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
     int status;
     switch (ct) {
         case IOTC_CT_AWS:
-        printf("Using AWS discovery URL...\n");
-            status = iotcl_dra_discovery_init_url_aws(&discovery_url, cpid, env);
+        	// TEMPORARY HACK UNTIL WE SORT OUT DISCOVERY URL
+        	// Shortcut to avoid full case insensitive match.
+        	// Hopefully the user doesn't enter something with mixed case
+        	if (0 == strcmp("POC", env) || 0 == strcmp("poc", env)) {
+                status = iotcl_dra_discovery_init_url_with_host(&discovery_url, "awsdiscovery.iotconnect.io", cpid, env);
+        	} else {
+                status = iotcl_dra_discovery_init_url_with_host(&discovery_url, "discoveryconsole.iotconnect.io", cpid, env);
+        	}
+        	if (IOTCL_SUCCESS == status) {
+            	printf("Using AWS discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
+        	}
             break;
         case IOTC_CT_AZURE:
-        printf("Using Azure discovery URL...\n");
             status = iotcl_dra_discovery_init_url_azure(&discovery_url, cpid, env);
+        	if (IOTCL_SUCCESS == status) {
+            	printf("Using Azure discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
+        	}
             break;
         default:
         printf("Unknown connection type %d\n", ct);
