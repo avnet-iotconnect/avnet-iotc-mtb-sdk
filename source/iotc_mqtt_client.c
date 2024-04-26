@@ -54,13 +54,14 @@ static uint8_t mqtt_network_buffer[MQTT_NETWORK_BUFFER_SIZE];
 static bool is_connected = false;
 static bool is_disconnect_requested = false;
 static bool is_mqtt_initialized = false;
+static bool is_in_callback = false;
 static IotConnectMqttInboundMessageCallback mqtt_inbound_msg_cb = NULL; // callback for inbound messages
 static IotConnectStatusCallback status_cb = NULL; // callback for connection status
 
 static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, void *user_data) {
     (void) mqtt_handle;
     (void) user_data;
-
+    is_in_callback = true;
     switch (event.type) {
     case CY_MQTT_EVENT_TYPE_DISCONNECT: {
         /* MQTT connection with the MQTT broker is broken as the client
@@ -107,6 +108,7 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
         break;
     }
     }
+    is_in_callback = false;
 }
 
 static cy_rslt_t mqtt_subscribe(IotclMqttConfig *mc, cy_mqtt_qos_t qos) {
@@ -178,6 +180,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     cy_rslt_t result = CY_RSLT_SUCCESS;
     cy_rslt_t ret = CY_RSLT_SUCCESS;
     is_connected = false;
+    is_in_callback = false;
 
     result = cy_mqtt_disconnect(mqtt_connection);
     if (result) {
@@ -235,6 +238,12 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
     publish_info.payload = payload;
     publish_info.payload_len = strlen(payload);
 
+    if (is_in_callback) {
+        // TODO: If we send messages while in callback with QOS1,
+        // message sending hangs with QOS != 0
+    	publish_info.qos = 0;
+    }
+
     result = cy_mqtt_publish(mqtt_connection, &publish_info);
 
     if (result != CY_RSLT_SUCCESS) {
@@ -247,7 +256,6 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
 cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     /* Variable to indicate status of various operations. */
     cy_rslt_t result;
-
     IotclMqttConfig* mc = iotcl_mqtt_get_config();
     if (!mc) {
     	return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
@@ -259,6 +267,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     status_cb = NULL;
     is_connected = false;
     is_disconnect_requested = false;
+    is_in_callback = false;
 
     /* Initialize the MQTT library. */
     result = cy_mqtt_init();

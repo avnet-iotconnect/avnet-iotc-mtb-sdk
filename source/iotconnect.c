@@ -13,15 +13,14 @@
 //#define PROTOCOL_V2_PROTOTYPE
 
 #include "iotcl.h"
+#include "iotcl_util.h"
 #include "iotcl_dra_discovery.h"
 #include "iotcl_dra_identity.h"
 #include "iotc_http_client.h"
 #include "iotc_mqtt_client.h"
 #include "iotconnect.h"
 
-// local variables determined by the last client config
-static bool verbose = false;
-static int send_qos = 0;
+IotConnectClientConfig config = {0};
 
 static void default_on_connection_status(IotConnectConnectionStatus status) {
     // Add your own status handling
@@ -156,35 +155,60 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
 }
 
 static void on_mqtt_c2d_message(const char* topic, const char *message, size_t message_len) {
-    if (verbose) {
+    if (config.verbose) {
         printf("<: %.*s\n", (int) message_len, message);
     }
     iotcl_c2d_process_event_with_length((uint8_t*) message, message_len);
 }
 
 void iotconnect_sdk_mqtt_send_cb(const char *topic, const char *json_str) {
-    if (verbose) {
+    if (config.verbose) {
         printf(">: %s\n",  json_str);
     }
-    iotc_mqtt_client_publish(topic, json_str, send_qos);
+    iotc_mqtt_client_publish(topic, json_str, config.qos);
 }
 
 cy_rslt_t iotconnect_sdk_disconnect() {
     return (cy_rslt_t) iotc_mqtt_client_disconnect();
 }
 
-
 void iotconnect_sdk_init_config(IotConnectClientConfig *c) {
     memset(c, 0, sizeof(IotConnectClientConfig));
     c->qos = 1;
 }
 
-bool iotconnect_sdk_is_connected() {
+bool iotconnect_sdk_is_connected(void) {
     return iotc_mqtt_client_is_connected();
+}
+
+cy_rslt_t iotconnect_sdk_connect(void) {
+    IotConnectMqttConfig mqtt_config = { 0 };
+    if (iotc_mqtt_client_is_connected()) {
+    	printf("ERROR: MQTT Client is already connected!\n");
+    	return (cy_rslt_t) IOTCL_ERR_FAILED;
+    }
+    mqtt_config.x509_config = &(config.x509_config);
+    mqtt_config.connection_type = config.connection_type;
+    mqtt_config.mqtt_inbound_msg_cb = on_mqtt_c2d_message;
+    mqtt_config.status_cb = config.callbacks.status_cb ? config.callbacks.status_cb : default_on_connection_status;
+    cy_rslt_t ret_cy = iotc_mqtt_client_init(&mqtt_config);
+    if (ret_cy) {
+		printf("Failed to connect!\n");
+        return (cy_rslt_t) IOTCL_ERR_FAILED;
+    }
+    return 0;
 }
 
 int iotconnect_sdk_init(IotConnectClientConfig *c) {
 	int status;
+
+    memcpy(&config, c, sizeof(IotConnectClientConfig));
+	// We use const to note to he user that they can use constants,
+	// but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
+    config.cpid = (const char *) iotcl_strdup(c->cpid);
+    config.env = (const char *) iotcl_strdup(c->env);
+    config.duid = (const char *) iotcl_strdup(c->duid);
+
     if (!c->env || !c->cpid || !c->duid) {
         printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required.");
         iotconnect_sdk_deinit();
@@ -206,9 +230,6 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
 	iotcl_cfg.events.cmd_cb = c->callbacks.cmd_cb;
 	iotcl_cfg.events.ota_cb = c->callbacks.ota_cb;
 
-    send_qos = c->qos;
-    verbose = c->verbose;
-
     if (c->verbose) {
         status = iotcl_init_and_print_config(&iotcl_cfg);
     } else {
@@ -221,18 +242,6 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
         return status;
     }
     printf("Identity response parsing successful.\n");
-
-    IotConnectMqttConfig mqtt_config = { 0 };
-    mqtt_config.x509_config = &c->x509_config;
-    mqtt_config.connection_type = c->connection_type;
-    mqtt_config.mqtt_inbound_msg_cb = on_mqtt_c2d_message;
-    mqtt_config.status_cb = c->callbacks.status_cb ? c->callbacks.status_cb : default_on_connection_status;
-    cy_rslt_t ret_cy = iotc_mqtt_client_init(&mqtt_config);
-    if (ret_cy) {
-		iotconnect_sdk_deinit();
-		printf("Failed to connect!\n");
-        return IOTCL_ERR_FAILED;
-    }
     return 0;
 }
 
@@ -240,5 +249,11 @@ void iotconnect_sdk_deinit(void) {
 	if (iotconnect_sdk_is_connected()) {
 		iotconnect_sdk_disconnect();
 	}
+	// We use const to note to he user that they can use constants,
+	// but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
+    if (config.cpid) iotcl_free((char *) config.cpid);
+    if (config.env) iotcl_free((char *) config.env);
+    if (config.duid) iotcl_free((char *) config.duid);
+    memset(&config, 0, sizeof(IotConnectClientConfig));
 	iotcl_deinit();
 }

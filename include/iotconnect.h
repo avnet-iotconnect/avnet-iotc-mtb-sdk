@@ -45,7 +45,7 @@ typedef struct {
     const char *cpid;   // CPID from Settings->Key Vault.
     const char *duid;   // Name of the device.
     IotConnectConnectionType connection_type;
-    IotConnectX509Config x509_config;
+    IotConnectX509Config x509_config; // NOTE: The user must maintain references to all certificates until sdk is deinitialized.
     IoTConnectCallbacks callbacks;
     int qos; // QOS for outbound messages. Default 1.
     bool verbose; // If true, we will output extra info and sent and received MQTT json data to standard out
@@ -55,7 +55,7 @@ typedef struct {
 void iotconnect_sdk_init_config(IotConnectClientConfig * c);
 
 // call iotconnect_sdk_init_config first and configure the SDK before calling iotconnect_sdk_init()
-// NOTE: the client does not need to keep references to the struct or any values inside it
+// NOTE: the client needs to keep references to all certificates, but does not need to keep references to other configuration pointers.
 int iotconnect_sdk_init(IotConnectClientConfig * c);
 
 cy_rslt_t iotconnect_sdk_connect(void);
