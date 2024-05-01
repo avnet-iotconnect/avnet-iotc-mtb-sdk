@@ -10,4 +10,4 @@ The project uses the following dependent projects as git submodules:
 * [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git)
 
 ## Contributing To This Project
-When contributing to this project, please follow the contributing guidelines for [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib/blob/master/CONTRIBUTING.md) where applicable and possible.
+When  contributing to this project, please follow the contributing guidelines for [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib/blob/master/CONTRIBUTING.md) where applicable and possible.
