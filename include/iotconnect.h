@@ -1,15 +1,13 @@
-//
-// Copyright: Avnet 2021
-// Modified by Nik Markovic <nikola.markovic@avnet.com> on 11/11/21.
-//
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
 
 #ifndef IOTCONNECT_H
 #define IOTCONNECT_H
 
-#include <stddef.h>
-#include "iotconnect_event.h"
-#include "iotconnect_telemetry.h"
-#include "iotconnect_lib.h"
+#include "cy_result.h"
+#include "iotcl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,67 +19,52 @@ typedef enum {
     IOTC_CS_MQTT_DISCONNECTED
 } IotConnectConnectionStatus;
 
-
 typedef enum {
-    // Authentication based on your CPID. Sync HTTP endpoint returns a long lived SAS token
-    // This auth type is only intended as a simple way to connect your test and development devices
-    // and must not be used in production
-    IOTC_AT_TOKEN = 1,
-
-    // CA Cert and Self Signed Cert
-    IOTC_AT_X509 = 2,
-
-    // NOT SUPPORTED. Reserved.
-    // TPM hardware devices -
-    IOTC_AT_TPM = 4, // 4 for compatibility with sync
-
-    // NOT SUPPORTED. Reserved.
-    // IoTHub Key based authentication with Symmetric Keys (Primary or Secondary key)
-    IOTC_AT_SYMMETRIC_KEY = 5
-
-} IotConnectAuthType;
-
-
-
-
-typedef struct {
-    IotConnectAuthType type;
-    union {
-        struct {
-            const char* device_cert; // Path to a file containing the device CA cert (or chain) in PEM format
-            const char* device_key; // Path to a file containing the device private key in PEM format
-        } cert_info;
-        char *symmetric_key;
-    } data;
-} IotConnectAuthInfo;
+	IOTC_CT_UNDEFINED = 0,
+    IOTC_CT_AWS,
+    IOTC_CT_AZURE
+} IotConnectConnectionType;
 
 typedef void (*IotConnectStatusCallback)(IotConnectConnectionStatus data);
 
 typedef struct {
-    char *env;    // Environment name. Contact your representative for details.
-    char *host;    // Environment name. Contact your representative for details.
-    char *cpid;   // Settings -> Company Profile.
-    char *duid;   // Name of the device.
-    IotConnectAuthInfo auth;
+	const char* server_ca_cert; // OPTIONAL server cert that will default to AmazonRootCA1 or Digicert G2 depending on connection type
+	const char* device_cert; // Path to a file containing the device CA cert (or chain) in PEM format
+	const char* device_key; // Path to a file containing the device private key in PEM format
+} IotConnectX509Config;
+
+
+typedef struct {
     IotclOtaCallback ota_cb; // callback for OTA events.
     IotclCommandCallback cmd_cb; // callback for command events.
-    IotclMessageCallback msg_cb; // callback for ALL messages, including the specific ones like cmd or ota callback.
     IotConnectStatusCallback status_cb; // callback for connection status
+} IoTConnectCallbacks;
+
+typedef struct {
+    const char *env;    // Environment name from Settings->Key Vault.
+    const char *cpid;   // CPID from Settings->Key Vault.
+    const char *duid;   // Name of the device.
+    IotConnectConnectionType connection_type;
+    IotConnectX509Config x509_config; // NOTE: The user must maintain references to all certificates until sdk is deinitialized.
+    IoTConnectCallbacks callbacks;
+    int qos; // QOS for outbound messages. Default 1.
+    bool verbose; // If true, we will output extra info and sent and received MQTT json data to standard out
 } IotConnectClientConfig;
 
 
-IotConnectClientConfig *iotconnect_sdk_init_and_get_config();
+void iotconnect_sdk_init_config(IotConnectClientConfig * c);
 
-int iotconnect_sdk_init();
+// call iotconnect_sdk_init_config first and configure the SDK before calling iotconnect_sdk_init()
+// NOTE: the client needs to keep references to all certificates, but does not need to keep references to other configuration pointers.
+int iotconnect_sdk_init(IotConnectClientConfig * c);
 
-bool iotconnect_sdk_is_connected();
+cy_rslt_t iotconnect_sdk_connect(void);
 
-IotclConfig *iotconnect_sdk_get_lib_config();
+bool iotconnect_sdk_is_connected(void);
 
-cy_rslt_t iotconnect_sdk_send_packet(const char *data);
-cy_rslt_t iotconnect_sdk_send_packet_int(const char *data, int qos);
+cy_rslt_t iotconnect_sdk_disconnect(void);
 
-cy_rslt_t iotconnect_sdk_disconnect();
+void iotconnect_sdk_deinit(void);
 
 #ifdef __cplusplus
 }

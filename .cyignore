@@ -1,7 +1,10 @@
-$(SEARCH_iotc-c-lib)/tests
-$(SEARCH_cJSON)/tests
-$(SEARCH_cJSON)/test.c
-$(SEARCH_cJSON)/cJSON_Utils.c
-$(SEARCH_cJSON)/fuzzing
-$(SEARCH_iotc-modustoolbox-test)/samples
-samples
+# c-lib unused code
+lib/iotc-c-lib/tests
+lib/iotc-c-lib/tools
+lib/iotc-c-lib/docs
+lib/iotc-c-lib/modules/heap-tracker
+
+# cJSON unused code
+lib/iotc-c-lib/lib/cJSON/tests
+lib/iotc-c-lib/lib/cJSON/test.c
+lib/iotc-c-lib/lib/cJSON/fuzzing

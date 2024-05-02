@@ -1,26 +1,26 @@
-//
-// Copyright: Avnet 2021
-// Created by Nik Markovic <nikola.markovic@avnet.com> on 11/11/21.
-//
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
+
 #ifndef IOTC_MQTT_CLIENT_H
 #define IOTC_MQTT_CLIENT_H
 
 #include <stddef.h>
 #include "cy_result.h"
 #include "iotconnect.h"
-#include "iotconnect_discovery.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void (*IotConnectC2dCallback)(const char* message, size_t message_len);
+typedef void (*IotConnectMqttInboundMessageCallback)(const char* topic, const char *message, size_t message_len);
 
 typedef struct {
-    IotclSyncResponse* sr;
-    IotConnectAuthInfo *auth; // Pointer to IoTConnect auth configuration
-    IotConnectC2dCallback c2d_msg_cb; // callback for inbound messages
+	IotConnectConnectionType connection_type; // AWS or Azure
+	IotConnectX509Config *x509_config; // Pointer to IoTConnect c509 configuration
+    IotConnectMqttInboundMessageCallback mqtt_inbound_msg_cb; // callback for inbound MQTT messages
     IotConnectStatusCallback status_cb; // callback for connection status
 } IotConnectMqttConfig;
 
@@ -31,7 +31,7 @@ cy_rslt_t iotc_mqtt_client_disconnect();
 bool iotc_mqtt_client_is_connected();
 
 // send a null terminated string
-cy_rslt_t iotc_mqtt_client_publish(const char *payload, int qos);
+cy_rslt_t iotc_mqtt_client_publish(const char * topic, const char *payload, int qos);
 
 #ifdef __cplusplus
 }

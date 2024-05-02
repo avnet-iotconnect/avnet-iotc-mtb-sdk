@@ -1,7 +1,7 @@
-/*-----------------------------------------------------------------
- Copyright: Avnet 2023
- Created by Shu Liu <shu.liu@avnet.com> on 05/15/23.
------------------------------------------------------------------*/
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Shu Liu <shu.liu@avnet.com> et al.
+ */
 #ifdef OTA_SUPPORT
 #include "cy_ota_api.h"
 

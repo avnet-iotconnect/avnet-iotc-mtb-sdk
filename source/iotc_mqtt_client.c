@@ -1,39 +1,8 @@
-/*******************************************************************************
- * Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
- * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
- *
- * This software, including source code, documentation and related
- * materials ("Software") is owned by Cypress Semiconductor Corporation
- * or one of its affiliates ("Cypress") and is protected by and subject to
- * worldwide patent protection (United States and foreign),
- * United States copyright laws and international treaty provisions.
- * Therefore, you may use this Software only as provided in the license
- * agreement accompanying the software package from which you
- * obtained this Software ("EULA").
- * If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
- * non-transferable license to copy, modify, and compile the Software
- * source code solely for use in connection with Cypress's
- * integrated circuit products.  Any reproduction, modification, translation,
- * compilation, or representation of this Software except as specified
- * above is prohibited without the express written permission of Cypress.
- *
- * Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
- * reserves the right to make changes to the Software without notice. Cypress
- * does not assume any liability arising out of the application or use of the
- * Software or any product or circuit described in the Software. Cypress does
- * not authorize its products for use in any products where a malfunction or
- * failure of the Cypress product may reasonably be expected to result in
- * significant property damage, injury or death ("High Risk Product"). By
- * including Cypress's product in a High Risk Product, the manufacturer
- * of such system or application assumes all risk of such use and in doing
- * so agrees to indemnify Cypress against all liability.
- *******************************************************************************/
-//
-// Copyright: Avnet 2021
-// Modified by Nik Markovic <nikola.markovic@avnet.com> on 11/11/21.
-//
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
+
 #include "cyhal.h"
 #include "cybsp.h"
 
@@ -53,7 +22,8 @@
 
 /* LwIP header files */
 #include "lwip/netif.h"
-#include "iotconnect_certs.h"
+
+#include "iotcl_certs.h"
 #include "iotc_mqtt_client.h"
 
 /* Maximum number of retries for MQTT subscribe operation */
@@ -81,17 +51,17 @@
 
 static cy_mqtt_t mqtt_connection;
 static uint8_t mqtt_network_buffer[MQTT_NETWORK_BUFFER_SIZE];
-static char *publish_topic = NULL; // pointer to sync response's publish topic. Should be available as long as we are connected.
 static bool is_connected = false;
 static bool is_disconnect_requested = false;
 static bool is_mqtt_initialized = false;
-static IotConnectC2dCallback c2d_msg_cb = NULL; // callback for inbound messages
+static bool is_in_callback = false;
+static IotConnectMqttInboundMessageCallback mqtt_inbound_msg_cb = NULL; // callback for inbound messages
 static IotConnectStatusCallback status_cb = NULL; // callback for connection status
 
 static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, void *user_data) {
     (void) mqtt_handle;
     (void) user_data;
-
+    is_in_callback = true;
     switch (event.type) {
     case CY_MQTT_EVENT_TYPE_DISCONNECT: {
         /* MQTT connection with the MQTT broker is broken as the client
@@ -117,8 +87,17 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
          * the subscriber callback function to handle it.
          */
         received_msg = &(event.data.pub_msg.received_message);
-        if (c2d_msg_cb && !is_disconnect_requested) {
-            c2d_msg_cb(received_msg->payload, received_msg->payload_len);
+        if (mqtt_inbound_msg_cb && !is_disconnect_requested) {
+        	// we must ensure that this is a null-terminated string here
+        	char * topic_str = malloc(received_msg->topic_len + 1);
+        	if (!topic_str) {
+                printf("Out of memory while trying to allocate the topic string!\n");
+        		break;
+        	}
+        	memcpy(topic_str, received_msg->topic, received_msg->topic_len);
+        	topic_str[received_msg->topic_len] = 0; // terminate it
+            mqtt_inbound_msg_cb(received_msg->topic, received_msg->payload, received_msg->payload_len);
+            free(topic_str);
         }
         is_disconnect_requested = false;
         break;
@@ -129,13 +108,17 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
         break;
     }
     }
+    is_in_callback = false;
 }
 
-static cy_rslt_t mqtt_subscribe(IotConnectMqttConfig *mqtt_config, cy_mqtt_qos_t qos) {
+static cy_rslt_t mqtt_subscribe(IotclMqttConfig *mc, cy_mqtt_qos_t qos) {
     /* Status variable */
 
-    cy_mqtt_subscribe_info_t subscribe_info = { .qos = qos, .topic = mqtt_config->sr->broker.sub_topic, .topic_len =
-            strlen(mqtt_config->sr->broker.sub_topic) };
+    cy_mqtt_subscribe_info_t subscribe_info = {
+    		.qos = qos, //
+			.topic = mc->sub_c2d, //
+			.topic_len = strlen(mc->sub_c2d) //
+    };
 
     cy_rslt_t result = 1;
 
@@ -152,27 +135,21 @@ static cy_rslt_t mqtt_subscribe(IotConnectMqttConfig *mqtt_config, cy_mqtt_qos_t
     return result;
 }
 
-static cy_rslt_t mqtt_connect(IotConnectMqttConfig *mqtt_config) {
+static cy_rslt_t mqtt_connect(IotclMqttConfig *mc) {
     /* Variable to indicate status of various operations. */
     cy_rslt_t result = CY_RSLT_SUCCESS;
 
     cy_mqtt_connect_info_t connection_info = { //
-            .client_id = mqtt_config->sr->broker.client_id, //
-                    .client_id_len = strlen(mqtt_config->sr->broker.client_id), //
-                    .username = mqtt_config->sr->broker.user_name, //
-                    .username_len = strlen(mqtt_config->sr->broker.user_name), //
-                    .password = NULL, //
-                    .password_len = 0, //
-                    .clean_session = true, //
-                    .keep_alive_sec = 60, //
-                    .will_info = NULL //
-            };
-
-    /* NOTE: Symmetric key not supported yet */
-    if (mqtt_config->auth->type == IOTC_AT_TOKEN || mqtt_config->auth->type == IOTC_AT_SYMMETRIC_KEY) {
-        connection_info.password = mqtt_config->sr->broker.pass;
-        connection_info.password_len = strlen(mqtt_config->sr->broker.pass);
-    }
+    		.client_id = mc->client_id, //
+			.client_id_len = strlen(mc->client_id), //
+			.username = mc->username, //
+			.username_len = mc->username ? strlen(mc->username) : 0, //
+			.password = NULL, //
+			.password_len = 0, //
+			.clean_session = true, //
+			.keep_alive_sec = 55, //
+			.will_info = NULL //
+	};
 
     /* Generate a unique client identifier with 'MQTT_CLIENT_IDENTIFIER' string
      * as a prefix if the `GENERATE_UNIQUE_CLIENT_ID` macro is enabled.
@@ -203,6 +180,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     cy_rslt_t result = CY_RSLT_SUCCESS;
     cy_rslt_t ret = CY_RSLT_SUCCESS;
     is_connected = false;
+    is_in_callback = false;
 
     result = cy_mqtt_disconnect(mqtt_connection);
     if (result) {
@@ -229,8 +207,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
         is_mqtt_initialized = false;
         ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
     }
-    publish_topic = NULL;
-    c2d_msg_cb = NULL;
+    mqtt_inbound_msg_cb = NULL;
     status_cb = NULL;
     return ret;
 }
@@ -244,22 +221,28 @@ bool iotc_mqtt_client_is_connected() {
     return is_connected;
 }
 
-cy_rslt_t iotc_mqtt_client_publish(const char *payload, int qos) {
+cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int qos) {
     /* Status variable */
     cy_rslt_t result;
 
-    if (!publish_topic) {
-        printf("iotc_mqtt_client_publish: MQTT is not connected\n");
-        return (cy_rslt_t) 1;
-    }
-
     /* Structure to store publish message information. */
-    cy_mqtt_publish_info_t publish_info = { .qos = (cy_mqtt_qos_t) qos, .topic = publish_topic, .topic_len = strlen(
-            publish_topic), .retain = false, .dup = false };
+    cy_mqtt_publish_info_t publish_info = { //
+    		.qos = (cy_mqtt_qos_t) qos, //
+			.topic = topic, //
+			.topic_len = strlen(topic), //
+			.retain = false, //
+			.dup = false //
+    };
 
     /* Publish the data received over the message queue. */
     publish_info.payload = payload;
     publish_info.payload_len = strlen(payload);
+
+    if (is_in_callback) {
+        // TODO: If we send messages while in callback with QOS1,
+        // message sending hangs with QOS != 0
+    	publish_info.qos = 0;
+    }
 
     result = cy_mqtt_publish(mqtt_connection, &publish_info);
 
@@ -273,41 +256,60 @@ cy_rslt_t iotc_mqtt_client_publish(const char *payload, int qos) {
 cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     /* Variable to indicate status of various operations. */
     cy_rslt_t result;
-
-    if (publish_topic) {
-        printf("WARNING: MQTT client initialized without disconnecting?\n");
-        free(publish_topic);
+    IotclMqttConfig* mc = iotcl_mqtt_get_config();
+    if (!mc) {
+    	return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
     }
-    publish_topic = NULL;
-    c2d_msg_cb = NULL;
+
+    if (!mc->sub_c2d)
+
+    mqtt_inbound_msg_cb = NULL;
     status_cb = NULL;
     is_connected = false;
     is_disconnect_requested = false;
+    is_in_callback = false;
 
     /* Initialize the MQTT library. */
     result = cy_mqtt_init();
     if (result) {
         iotc_cleanup_mqtt();
-        printf("Failed to intialize the MQTT library. Error was:0x%08lx\n", result);
+        printf("Failed to initialize the MQTT library. Error was:0x%08lx\n", result);
         return result;
     }
 
     cy_mqtt_broker_info_t broker_info = { //
-            .hostname = c->sr->broker.host, //
-                    .hostname_len = strlen(c->sr->broker.host), .port = 8883 //
-            };
+    		.hostname = mc->host, //
+			.hostname_len = strlen(mc->host),
+			.port = 8883 //
+    };
 
     cy_awsport_ssl_credentials_t security_info = { 0 };
-    security_info.root_ca = DIGI_GLOBAL_ROOTG2;
-    security_info.root_ca_size = sizeof(DIGI_GLOBAL_ROOTG2);
 
-    // mqtt_connect handles different auth types
-    if (c->auth->type == IOTC_AT_X509) {
-        security_info.client_cert = c->auth->data.cert_info.device_cert;
-        security_info.client_cert_size = strlen(c->auth->data.cert_info.device_cert) + 1;
-        security_info.private_key = c->auth->data.cert_info.device_key;
-        security_info.private_key_size = strlen(c->auth->data.cert_info.device_key) + 1;
+    security_info.sni_host_name = mc->host;
+    security_info.sni_host_name_size = strlen(mc->host) + 1; // yes, +1 !
+
+    if (c->x509_config->server_ca_cert) {
+    	security_info.root_ca = c->x509_config->server_ca_cert;
+    } else {
+    	switch(c->connection_type) {
+    	case IOTC_CT_AWS:
+    		security_info.root_ca = IOTCL_AMAZON_ROOT_CA1;
+    		break;
+    	case IOTC_CT_AZURE:
+    		security_info.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
+    		break;
+    	default:
+    		// the SDK will check, but just in case
+    		printf("connection_type must be set Azure or AWS\n");
+        	return CY_RSLT_MODULE_MQTT_BADARG;
+    	}
     }
+    security_info.root_ca_size = strlen(security_info.root_ca) + 1;
+
+	security_info.client_cert = c->x509_config->device_cert;
+	security_info.client_cert_size = strlen(c->x509_config->device_cert) + 1;
+	security_info.private_key = c->x509_config->device_key;
+	security_info.private_key_size = c->x509_config->device_key ? strlen(c->x509_config->device_key) + 1 : 0;
 
     /* Create the MQTT client instance. */
     result = cy_mqtt_create(mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, &security_info, &broker_info,
@@ -319,20 +321,19 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
         return result;
     }
 
-    result = mqtt_connect(c);
+    result = mqtt_connect(mc);
     if (result) {
         iotc_cleanup_mqtt();
         return result;
     }
-    result = mqtt_subscribe(c, (cy_mqtt_qos_t) 1);
+    result = mqtt_subscribe(mc, (cy_mqtt_qos_t) 1);
     if (result) {
         printf("Failed to subscribe to the MQTT topic. Error was:0x%08lx\n", result);
         iotc_cleanup_mqtt();
         return result;
     }
     is_connected = true;
-    publish_topic = c->sr->broker.pub_topic;
     status_cb = c->status_cb;
-    c2d_msg_cb = c->c2d_msg_cb;
+    mqtt_inbound_msg_cb = c->mqtt_inbound_msg_cb;
     return result;
 }

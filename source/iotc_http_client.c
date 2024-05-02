@@ -1,47 +1,15 @@
-/*******************************************************************************
-* Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
-* an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
-*
-* This software, including source code, documentation and related
-* materials ("Software") is owned by Cypress Semiconductor Corporation
-* or one of its affiliates ("Cypress") and is protected by and subject to
-* worldwide patent protection (United States and foreign),
-* United States copyright laws and international treaty provisions.
-* Therefore, you may use this Software only as provided in the license
-* agreement accompanying the software package from which you
-* obtained this Software ("EULA").
-* If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
-* non-transferable license to copy, modify, and compile the Software
-* source code solely for use in connection with Cypress's
-* integrated circuit products.  Any reproduction, modification, translation,
-* compilation, or representation of this Software except as specified
-* above is prohibited without the express written permission of Cypress.
-*
-* Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
-* reserves the right to make changes to the Software without notice. Cypress
-* does not assume any liability arising out of the application or use of the
-* Software or any product or circuit described in the Software. Cypress does
-* not authorize its products for use in any products where a malfunction or
-* failure of the Cypress product may reasonably be expected to result in
-* significant property damage, injury or death ("High Risk Product"). By
-* including Cypress's product in a High Risk Product, the manufacturer
-* of such system or application assumes all risk of such use and in doing
-* so agrees to indemnify Cypress against all liability.
-*******************************************************************************/
-//
-// Copyright: Avnet 2021
-// Modified by Nik Markovic <nikola.markovic@avnet.com> on 11/11/21.
-//
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
 
 #include "FreeRTOS.h"
 #include "task.h"
+
 #include <cy_http_client_api.h>
 
-#include "iotconnect_discovery.h"
+#include "iotcl_certs.h"
 #include "iotc_http_client.h"
-#include "iotconnect_certs.h"
 
 #ifndef IOTC_HTTP_SEND_RECV_TIMEOUT_MS
 #define IOTC_HTTP_SEND_RECV_TIMEOUT_MS    ( 10000 )
@@ -72,8 +40,8 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     server_info.host_name = host;
     server_info.port = 443;
 
-    credentials.root_ca = CERT_GODADDY_ROOT_CA;
-    credentials.root_ca_size = strlen(CERT_GODADDY_ROOT_CA) + 1; // needs to include the null
+    credentials.root_ca = IOTCL_CERT_GODADDY_SECURE_SERVER_CERTIFICATE_G2;
+    credentials.root_ca_size = strlen(IOTCL_CERT_GODADDY_SECURE_SERVER_CERTIFICATE_G2) + 1; // needs to include the null
     credentials.root_ca_verify_mode = CY_AWS_ROOTCA_VERIFY_REQUIRED;
     credentials.sni_host_name = host;
     credentials.sni_host_name_size = strlen(host) + 1; // needs to include the null
@@ -99,7 +67,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
         if (res != CY_RSLT_SUCCESS) {
             printf("Failed to connect to http server. Error=0x%08lx. ", res);
             if (i <= 0) {
-                printf("Giving up! Max retry count %d reached", IOTC_HTTP_CONNECT_MAX_RETRIES);
+                printf("Giving up! Max retry count %d reached\n", IOTC_HTTP_CONNECT_MAX_RETRIES);
                 goto cleanup_delete;
             } else {
                 printf("Retrying...\n");
