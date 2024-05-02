@@ -1,4 +1,8 @@
-This repository contains the IoTConnect ModusToolbox SDK. Refer to the [example project](https://github.com/avnet-iotconnect/iotc-modustoolbox-example) for reference to use this SDK.
+This repository contains the IoTConnect ModusToolbox SDK with support for protocol 1.0 for Azure.
+This repository is in maintenance mode.
+Please use the main branch releases for new projects with protocol 2.1 for AWS and Azure.
+
+Refer to the [example project](https://github.com/avnet-iotconnect/iotc-modustoolbox-example) for reference to use this SDK.
 
 This code is based on the [mtb-example-anycloud-mqtt-client](https://github.com/Infineon/mtb-example-anycloud-mqtt-client) project 
  and indirectly on the Infineon's [MQTT 3.1.1](https://github.com/Infineon/mqtt) client library.
