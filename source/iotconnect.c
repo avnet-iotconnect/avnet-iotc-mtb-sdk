@@ -18,6 +18,7 @@
 #include "iotcl_dra_identity.h"
 #include "iotc_http_client.h"
 #include "iotc_mqtt_client.h"
+#include "iotc_mqtt_mq.h"
 #include "iotconnect.h"
 
 IotConnectClientConfig config = {0};
@@ -169,6 +170,7 @@ void iotconnect_sdk_mqtt_send_cb(const char *topic, const char *json_str) {
 }
 
 cy_rslt_t iotconnect_sdk_disconnect() {
+
     return (cy_rslt_t) iotc_mqtt_client_disconnect();
 }
 
