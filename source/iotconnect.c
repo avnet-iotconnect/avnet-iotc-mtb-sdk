@@ -37,7 +37,6 @@ static void default_on_connection_status(IotConnectConnectionStatus status) {
     }
 }
 
-
 static void dump_response(const char *message, IotConnectHttpResponse *response) {
     if (message) {
         printf("%s\n", message);
@@ -49,7 +48,6 @@ static void dump_response(const char *message, IotConnectHttpResponse *response)
     	printf(" Response was empty\n");
     }
 }
-
 
 static int validate_response(IotConnectHttpResponse *response) {
     if (NULL == response->data) {
@@ -210,13 +208,13 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
     config.duid = (const char *) iotcl_strdup(c->duid);
 
     if (!c->env || !c->cpid || !c->duid) {
-        printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required.");
+        printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required!\n");
         iotconnect_sdk_deinit();
         return IOTCL_ERR_MISSING_VALUE;
     }
 
     if (c->connection_type != IOTC_CT_AWS && c->connection_type != IOTC_CT_AZURE) {
-        printf("Error: Device configuration is invalid. Must set connection type");
+        printf("Error: Device configuration is invalid. Must specify connection type!\n");
         iotconnect_sdk_deinit();
         return IOTCL_ERR_MISSING_VALUE;
     }
