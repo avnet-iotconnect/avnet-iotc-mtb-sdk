@@ -3,7 +3,11 @@
  * Authors: Shu Liu <shu.liu@avnet.com> et al.
  */
 
-#ifdef OTA_SUPPORT
+
+// Surround the whole OTA support around IOTC_OTA_SUPPORT
+// To avoid potential issues with older BSPs if OTA is not supported
+#ifdef IOTC_OTA_SUPPORT
+
 /* Middleware libraries */
 //#include "cy_retarget_io.h"
 #include "cy_log.h"
@@ -12,6 +16,7 @@
 #include "cy_ota_api.h"
 #include "ota_serial_flash.h"
 
+#include "iotcl_certs.h"
 #include "iotc_ota.h"
 
 
@@ -32,8 +37,8 @@ static cy_ota_network_params_t ota_network_params = {
 		},
 		.file = NULL,
 		.credentials ={
-			.root_ca = DIGICERT_GLOBAL_ROOT_G2,
-			.root_ca_size = sizeof(DIGICERT_GLOBAL_ROOT_G2),
+			.root_ca = NULL,
+			.root_ca_size = 0,
 		},
 	},
 	.use_get_job_flow = CY_OTA_DIRECT_FLOW,
@@ -236,9 +241,23 @@ cy_rslt_t iotc_ota_storage_validated(void) {
 	return result;
 }
 
-cy_rslt_t iotc_ota_start(char *host, char *path, cy_ota_callback_t usr_ota_cb) {
+cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *host, const char *path, cy_ota_callback_t usr_ota_cb) {
 	if (path == NULL || host == NULL) {
 		return -1;
+	}
+	switch(connection_type) {
+		case IOTC_CT_AWS:
+			ota_network_params.http.credentials.root_ca = IOTCL_AMAZON_ROOT_CA1;
+			ota_network_params.http.credentials.root_ca_size = sizeof(IOTCL_AMAZON_ROOT_CA1);
+			break;
+		case IOTC_CT_AZURE:
+			ota_network_params.http.credentials.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
+			ota_network_params.http.credentials.root_ca_size = sizeof(IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2);
+			break;
+		default:
+			printf("Error: OTA Connection Type invalid!\n");
+			return -2;
+
 	}
 	ota_network_params.http.file = path;
 	ota_network_params.http.server.host_name = host;
@@ -257,4 +276,4 @@ cy_rslt_t iotc_ota_start(char *host, char *path, cy_ota_callback_t usr_ota_cb) {
 	}
 	return result;
 }
-#endif
+#endif // IOTC_OTA_SUPPORT
