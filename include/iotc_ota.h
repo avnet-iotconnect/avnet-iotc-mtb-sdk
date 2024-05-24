@@ -20,6 +20,7 @@ cy_rslt_t iotc_ota_init(void);
 // Validate the update so we do not revert
 cy_rslt_t iotc_ota_storage_validated(void);
 
+// The callback is optional. If not provided, this module will handle OTA for the user by printing status messages
 cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char* host, const char* path, cy_ota_callback_t usr_ota_cb);
 
 #endif // IOTC_OTA_SUPPORT
