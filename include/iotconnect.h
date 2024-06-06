@@ -7,6 +7,7 @@
 #define IOTCONNECT_H
 
 #include "cy_result.h"
+#include "cyabs_rtos.h" // for cy_time_t
 #include "iotcl.h"
 
 #ifdef __cplusplus
@@ -47,7 +48,13 @@ typedef struct {
     IotConnectConnectionType connection_type;
     IotConnectX509Config x509_config; // NOTE: The user must maintain references to all certificates until sdk is deinitialized.
     IoTConnectCallbacks callbacks;
-    int qos; // QOS for outbound messages. Default 1.
+
+    // QOS for outbound messages. Default 1.
+    int qos;
+
+    // up to how many inbound messages (default 4) to queue up into the message queue for offloaded processing:
+    size_t mq_max_messages;
+
     bool verbose; // If true, we will output extra info and sent and received MQTT json data to standard out
 } IotConnectClientConfig;
 
@@ -59,6 +66,12 @@ void iotconnect_sdk_init_config(IotConnectClientConfig * c);
 int iotconnect_sdk_init(IotConnectClientConfig * c);
 
 cy_rslt_t iotconnect_sdk_connect(void);
+
+// The client code should periodically poll the message queue for inbound messages (commands OTA etc.)
+// This all will serve all messages in the queue (if any) and call appropriate command/OTA callbacks
+// Wait up to timeout_ms milliseconds, and if messages are available, processes them with itc-c-lib
+// If timeout_ms is zero, the call will block forever until a message arrives
+void iotconnect_sdk_poll_inbound_mq(cy_time_t timeout_ms);
 
 bool iotconnect_sdk_is_connected(void);
 

@@ -31,7 +31,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     cy_awsport_ssl_credentials_t credentials;
     cy_awsport_server_info_t server_info;
     cy_http_client_t handle;
-    cy_http_client_request_header_t request;
+    cy_http_client_request_header_t request = {0};
     cy_http_client_header_t header[2];
     cy_http_client_response_t client_resp;
 
