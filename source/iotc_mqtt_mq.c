@@ -124,7 +124,8 @@ void iotc_mq_flush(void) {
 
 	memset(&msg, 0, sizeof(IotcMqMessage));
 
-	while(CY_RSLT_SUCCESS == cy_rtos_get_queue( &cy_queue, (void *)&msg, CY_RTOS_NEVER_TIMEOUT, false )) {
+	// If we give 0 timeout, it will never return after the last one, so use at least 1 so that it doesn't block indefinitely
+	while(CY_RSLT_SUCCESS == cy_rtos_get_queue( &cy_queue, (void *)&msg, 1, false )) {
 		iotc_mq_destroy_message(&msg);
 	}
 }
