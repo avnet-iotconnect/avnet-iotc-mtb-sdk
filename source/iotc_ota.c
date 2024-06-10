@@ -215,7 +215,6 @@ static cy_ota_callback_results_t iotc_ota_callback(cy_ota_cb_struct_t *cb_data) 
 }
 
 cy_rslt_t iotc_ota_init(void) {
-	cy_ota_set_log_level(CY_LOG_NOTICE);
 	cy_rslt_t result = cy_ota_storage_init();
 	if (result != CY_RSLT_SUCCESS) {
 		printf("ERROR returned from ota_smif_initialize()!\n");
