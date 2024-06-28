@@ -32,7 +32,6 @@
 /* OTA context */
 static cy_ota_context_ptr ota_context;
 
-
 static cy_ota_storage_interface_t ota_interfaces =
 {
    .ota_file_open            = cy_ota_storage_open,
@@ -44,6 +43,7 @@ static cy_ota_storage_interface_t ota_interfaces =
    .ota_file_get_app_info    = cy_ota_storage_get_app_info
 };
 
+extern char *iotcl_strdup(const char *str);
 
 /*******************************************************************************
  * Function Name: ota_callback()
@@ -230,35 +230,53 @@ cy_rslt_t iotc_ota_storage_validated(void) {
 	return result;
 }
 
+static cy_ota_agent_params_t ota_agent_params =
+{
+    // .cb_func = usr_ota_cb ? usr_ota_cb : iotc_ota_callback,
+	.cb_func = NULL,
+    .cb_arg = &ota_context,
+    .reboot_upon_completion = 1, /* Reboot after completing OTA with success. */
+    .validate_after_reboot = 1,
+    .do_not_send_result = 1
+};
+
+static cy_ota_network_params_t ota_network_params = {
+    .http = {
+        .server = {
+            .host_name = NULL,
+            .port = HTTP_SERVER_PORT
+        },
+        .file = NULL,
+        .credentials = {
+            .root_ca = NULL,
+            .root_ca_size = 0,
+        },
+    },
+    .use_get_job_flow = CY_OTA_DIRECT_FLOW,
+    .initial_connection = CY_OTA_CONNECTION_HTTPS
+};
+
+static cy_rslt_t iotc_ota_stop(void) {
+	if (ota_network_params.http.file != NULL) {
+		const char* file = ota_network_params.http.file;
+		free((char* )file);
+		ota_network_params.http.file = NULL;
+	}
+	if (ota_network_params.http.server.host_name != NULL) {
+		const char* host_name = ota_network_params.http.server.host_name;
+		free((char* )host_name);
+		ota_network_params.http.server.host_name = NULL;
+	}
+	else {
+		return -1;
+	}
+	return CY_RSLT_SUCCESS;
+}
+
 cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *host, const char *path, cy_ota_callback_t usr_ota_cb) {
 	if (path == NULL || host == NULL) {
 		return -1;
 	}
-
-	cy_ota_agent_params_t ota_agent_params =
-	{
-	    .cb_func = usr_ota_cb ? usr_ota_cb : iotc_ota_callback,
-	    .cb_arg = &ota_context,
-	    .reboot_upon_completion = 1, /* Reboot after completing OTA with success. */
-	    .validate_after_reboot = 1,
-	    .do_not_send_result = 1
-	};
-
-	cy_ota_network_params_t ota_network_params = {
-	    .http = {
-	        .server = {
-	            .host_name = host,
-	            .port = HTTP_SERVER_PORT
-	        },
-	        .file = path,
-	        .credentials = {
-	            .root_ca = NULL,
-	            .root_ca_size = 0,
-	        },
-	    },
-	    .use_get_job_flow = CY_OTA_JOB_FLOW,
-	    .initial_connection = CY_OTA_CONNECTION_HTTPS
-	};
 
 	switch(connection_type) {
 		case IOTC_CT_AWS:
@@ -274,20 +292,17 @@ cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *h
 			return -2;
 
 	}
-	ota_network_params.http.file = path;
-	ota_network_params.http.server.host_name = host;
 
-	if (usr_ota_cb != NULL) {
-		ota_agent_params.cb_func = usr_ota_cb;
-	}
-	else {
-		ota_agent_params.cb_func = iotc_ota_callback;
-	}
+	ota_agent_params.cb_func = usr_ota_cb ? usr_ota_cb : iotc_ota_callback;
+
+	ota_network_params.http.file = iotcl_strdup(path);
+	ota_network_params.http.server.host_name = iotcl_strdup(host);
 
 	cy_rslt_t result = cy_ota_agent_start(&ota_network_params, &ota_agent_params, &ota_interfaces, &ota_context);
 
 	if (result != CY_RSLT_SUCCESS) {
 		printf("Initializing and starting the OTA agent failed. Error is %lu\n", result);
+		iotc_ota_stop();
 	}
 	return result;
 }
