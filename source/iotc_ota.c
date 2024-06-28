@@ -3,18 +3,27 @@
  * Authors: Shu Liu <shu.liu@avnet.com> et al.
  */
 
-#ifdef OTA_SUPPORT
+
+// Surround the whole OTA support around IOTC_OTA_SUPPORT
+// To avoid potential issues with older BSPs if OTA is not supported
+#ifdef IOTC_OTA_SUPPORT
+
 /* Middleware libraries */
 //#include "cy_retarget_io.h"
 #include "cy_log.h"
 
 /* OTA API */
 #include "cy_ota_api.h"
-#include "ota_serial_flash.h"
+#include "cy_ota_storage_api.h"
+
+#include "iotcl_certs.h"
+#include "iotcl.h"
+#include "iotcl_util.h"
 
 #include "iotc_ota.h"
 
-
+/* Application ID */
+#define APP_ID                              (0)
 #define HTTP_SERVER_PORT	443
 
 /*******************************************************************************
@@ -23,33 +32,16 @@
 /* OTA context */
 static cy_ota_context_ptr ota_context;
 
-/* Network parameters for OTA */
-static cy_ota_network_params_t ota_network_params = {
-	.http =	{
-		.server ={
-			.host_name = NULL,
-			.port = HTTP_SERVER_PORT
-		},
-		.file = NULL,
-		.credentials ={
-			.root_ca = DIGICERT_GLOBAL_ROOT_G2,
-			.root_ca_size = sizeof(DIGICERT_GLOBAL_ROOT_G2),
-		},
-	},
-	.use_get_job_flow = CY_OTA_DIRECT_FLOW,
-	.initial_connection = CY_OTA_CONNECTION_HTTPS,
+static cy_ota_storage_interface_t ota_interfaces =
+{
+   .ota_file_open            = cy_ota_storage_open,
+   .ota_file_read            = cy_ota_storage_read,
+   .ota_file_write           = cy_ota_storage_write,
+   .ota_file_close           = cy_ota_storage_close,
+   .ota_file_verify          = cy_ota_storage_verify,
+   .ota_file_validate        = cy_ota_storage_image_validate,
+   .ota_file_get_app_info    = cy_ota_storage_get_app_info
 };
-
-/* Parameters for OTA agent */
-static cy_ota_agent_params_t ota_agent_params = {
-	.cb_func = NULL,
-	.cb_arg = &ota_context,
-	.reboot_upon_completion = 1,
-	.validate_after_reboot = 1,
-	.do_not_send_result = 1
-};
-
-
 
 /*******************************************************************************
  * Function Name: ota_callback()
@@ -66,7 +58,7 @@ static cy_ota_agent_params_t ota_agent_params = {
  *  CY_OTA_CB_RSLT_APP_FAILED   - Application completed task, failure.
  *
  *******************************************************************************/
-static cy_ota_callback_results_t ota_callback(cy_ota_cb_struct_t *cb_data) {
+static cy_ota_callback_results_t iotc_ota_callback(cy_ota_cb_struct_t *cb_data) {
 	cy_ota_callback_results_t cb_result = CY_OTA_CB_RSLT_OTA_CONTINUE;
 	const char *state_string;
 	const char *error_string;
@@ -221,7 +213,7 @@ static cy_ota_callback_results_t ota_callback(cy_ota_cb_struct_t *cb_data) {
 }
 
 cy_rslt_t iotc_ota_init(void) {
-	cy_rslt_t result = ota_smif_initialize();
+	cy_rslt_t result = cy_ota_storage_init();
 	if (result != CY_RSLT_SUCCESS) {
 		printf("ERROR returned from ota_smif_initialize()!\n");
 	}
@@ -229,32 +221,86 @@ cy_rslt_t iotc_ota_init(void) {
 }
 
 cy_rslt_t iotc_ota_storage_validated(void) {
-	cy_rslt_t result = cy_ota_storage_validated();
+	cy_rslt_t result = cy_ota_storage_image_validate(APP_ID);
 	if (result != CY_RSLT_SUCCESS) {
 		printf("Failed to flag firmware as valid.\n");
 	}
 	return result;
 }
 
-cy_rslt_t iotc_ota_start(char *host, char *path, cy_ota_callback_t usr_ota_cb) {
+static cy_ota_agent_params_t ota_agent_params =
+{
+    // .cb_func = usr_ota_cb ? usr_ota_cb : iotc_ota_callback,
+	.cb_func = NULL,
+    .cb_arg = &ota_context,
+    .reboot_upon_completion = 1, /* Reboot after completing OTA with success. */
+    .validate_after_reboot = 1,
+    .do_not_send_result = 1
+};
+
+static cy_ota_network_params_t ota_network_params = {
+    .http = {
+        .server = {
+            .host_name = NULL,
+            .port = HTTP_SERVER_PORT
+        },
+        .file = NULL,
+        .credentials = {
+            .root_ca = NULL,
+            .root_ca_size = 0,
+        },
+    },
+    .use_get_job_flow = CY_OTA_DIRECT_FLOW,
+    .initial_connection = CY_OTA_CONNECTION_HTTPS
+};
+
+static cy_rslt_t iotc_ota_stop(void) {
+	if (ota_network_params.http.file != NULL) {
+		const char* file = ota_network_params.http.file;
+		iotcl_free((char* )file);
+		ota_network_params.http.file = NULL;
+	}
+	if (ota_network_params.http.server.host_name != NULL) {
+		const char* host_name = ota_network_params.http.server.host_name;
+		iotcl_free((char* )host_name);
+		ota_network_params.http.server.host_name = NULL;
+	} else {
+		return -1;
+	}
+	return CY_RSLT_SUCCESS;
+}
+
+cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *host, const char *path, cy_ota_callback_t usr_ota_cb) {
 	if (path == NULL || host == NULL) {
 		return -1;
 	}
-	ota_network_params.http.file = path;
-	ota_network_params.http.server.host_name = host;
 
-	if (usr_ota_cb != NULL) {
-		ota_agent_params.cb_func = usr_ota_cb;
-	}
-	else {
-		ota_agent_params.cb_func = ota_callback;
+	switch(connection_type) {
+		case IOTC_CT_AWS:
+			ota_network_params.http.credentials.root_ca = IOTCL_AMAZON_ROOT_CA1;
+			ota_network_params.http.credentials.root_ca_size = sizeof(IOTCL_AMAZON_ROOT_CA1);
+			break;
+		case IOTC_CT_AZURE:
+			ota_network_params.http.credentials.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
+			ota_network_params.http.credentials.root_ca_size = sizeof(IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2);
+			break;
+		default:
+			printf("Error: OTA Connection Type invalid!\n");
+			return -2;
+
 	}
 
-	cy_rslt_t result = cy_ota_agent_start(&ota_network_params, &ota_agent_params, &ota_context);
+	ota_agent_params.cb_func = usr_ota_cb ? usr_ota_cb : iotc_ota_callback;
+
+	ota_network_params.http.file = iotcl_strdup(path);
+	ota_network_params.http.server.host_name = iotcl_strdup(host);
+
+	cy_rslt_t result = cy_ota_agent_start(&ota_network_params, &ota_agent_params, &ota_interfaces, &ota_context);
 
 	if (result != CY_RSLT_SUCCESS) {
 		printf("Initializing and starting the OTA agent failed. Error is %lu\n", result);
+		iotc_ota_stop();
 	}
 	return result;
 }
-#endif
+#endif // IOTC_OTA_SUPPORT

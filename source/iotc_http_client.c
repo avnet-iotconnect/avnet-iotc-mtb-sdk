@@ -31,7 +31,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     cy_awsport_ssl_credentials_t credentials;
     cy_awsport_server_info_t server_info;
     cy_http_client_t handle;
-    cy_http_client_request_header_t request;
+    cy_http_client_request_header_t request = {0};
     cy_http_client_header_t header[2];
     cy_http_client_response_t client_resp;
 
@@ -81,9 +81,8 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     request.headers_len = 0;
     request.method = (send_str ? CY_HTTP_CLIENT_METHOD_POST : CY_HTTP_CLIENT_METHOD_GET);
     request.range_end = -1;
-    request.range_start = 0;
+    request.range_start = -1;
     request.resource_path = path;
-
     uint32_t num_headers = 0;
     header[num_headers].field = "Connection";
     header[num_headers].field_len = strlen("Connection");
@@ -98,12 +97,14 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
 
     /* Generate the standard header and user-defined header, and update in the request structure. */
     res = cy_http_client_write_header(handle, &request, &header[0], num_headers);
-    if (res != CY_RSLT_SUCCESS) {
-        printf("Failed write HTTP headers. Error=0x%08lx\n", res);
-        goto cleanup_disconnect;
-    }
+	if (res != CY_RSLT_SUCCESS) {
+		printf("Failed write HTTP headers. Error=0x%08lx\n", res);
+		goto cleanup_disconnect;
+	}
+
     /* Send the HTTP request and body to the server and receive the response from it. */
-    res = cy_http_client_send(handle, &request, (uint8_t*) send_str, (send_str ? strlen(send_str) : 0), &client_resp);
+   	res = cy_http_client_send(handle, &request, (uint8_t*) send_str, (send_str ? strlen(send_str) : 0), &client_resp);
+
     if (res != CY_RSLT_SUCCESS) {
         printf("Failed send the HTTP request. Error=0x%08lx\n", res);
         goto cleanup_disconnect;

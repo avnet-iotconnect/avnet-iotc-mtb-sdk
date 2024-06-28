@@ -18,6 +18,7 @@
 #include "iotcl_dra_identity.h"
 #include "iotc_http_client.h"
 #include "iotc_mqtt_client.h"
+#include "iotc_mqtt_mq.h"
 #include "iotconnect.h"
 
 IotConnectClientConfig config = {0};
@@ -37,7 +38,6 @@ static void default_on_connection_status(IotConnectConnectionStatus status) {
     }
 }
 
-
 static void dump_response(const char *message, IotConnectHttpResponse *response) {
     if (message) {
         printf("%s\n", message);
@@ -49,7 +49,6 @@ static void dump_response(const char *message, IotConnectHttpResponse *response)
     	printf(" Response was empty\n");
     }
 }
-
 
 static int validate_response(IotConnectHttpResponse *response) {
     if (NULL == response->data) {
@@ -158,9 +157,15 @@ static void on_mqtt_c2d_message(const char* topic, const char *message, size_t m
     if (config.verbose) {
         printf("<: %.*s\n", (int) message_len, message);
     }
-    iotcl_c2d_process_event_with_length((uint8_t*) message, message_len);
+    iotc_mq_on_mqtt_inbound_message(topic, message, message_len);
 }
 
+static void on_mqtt_mq_message(const char* topic, const char *message, size_t message_len) {
+    if (config.verbose) {
+        printf("+: %.*s\n", (int) message_len, message);
+    }
+    iotcl_c2d_process_event_with_length((uint8_t*) message, message_len);
+}
 void iotconnect_sdk_mqtt_send_cb(const char *topic, const char *json_str) {
     if (config.verbose) {
         printf(">: %s\n",  json_str);
@@ -169,16 +174,23 @@ void iotconnect_sdk_mqtt_send_cb(const char *topic, const char *json_str) {
 }
 
 cy_rslt_t iotconnect_sdk_disconnect() {
+	iotc_mq_deregister();
+	iotc_mq_flush();
     return (cy_rslt_t) iotc_mqtt_client_disconnect();
 }
 
 void iotconnect_sdk_init_config(IotConnectClientConfig *c) {
     memset(c, 0, sizeof(IotConnectClientConfig));
     c->qos = 1;
+    c->mq_max_messages = 4;
 }
 
 bool iotconnect_sdk_is_connected(void) {
     return iotc_mqtt_client_is_connected();
+}
+
+void iotconnect_sdk_poll_inbound_mq(cy_time_t timeout_ms) {
+	iotc_mq_process(timeout_ms);
 }
 
 cy_rslt_t iotconnect_sdk_connect(void) {
@@ -196,6 +208,7 @@ cy_rslt_t iotconnect_sdk_connect(void) {
 		printf("Failed to connect!\n");
         return (cy_rslt_t) IOTCL_ERR_FAILED;
     }
+    iotc_mq_register(on_mqtt_mq_message);
     return 0;
 }
 
@@ -210,16 +223,26 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
     config.duid = (const char *) iotcl_strdup(c->duid);
 
     if (!c->env || !c->cpid || !c->duid) {
-        printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required.");
+        printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required!\n");
         iotconnect_sdk_deinit();
         return IOTCL_ERR_MISSING_VALUE;
     }
 
     if (c->connection_type != IOTC_CT_AWS && c->connection_type != IOTC_CT_AZURE) {
-        printf("Error: Device configuration is invalid. Must set connection type");
+        printf("Error: Device configuration is invalid. Must specify connection type!\n");
         iotconnect_sdk_deinit();
         return IOTCL_ERR_MISSING_VALUE;
     }
+
+    if (c->mq_max_messages <= 0) {
+        printf("IOTC: Error: mq_max_messages needs to be greater than zero!\n");
+        return IOTCL_ERR_CONFIG_ERROR;
+    }
+
+    cy_rslt_t result = iotc_mq_init(c->mq_max_messages);
+	if (CY_RSLT_SUCCESS != result) {
+		return result;
+	}
 
     IotclClientConfig iotcl_cfg;
 	iotcl_init_client_config(&iotcl_cfg);
@@ -249,6 +272,7 @@ void iotconnect_sdk_deinit(void) {
 	if (iotconnect_sdk_is_connected()) {
 		iotconnect_sdk_disconnect();
 	}
+	iotc_mq_deinit();
 	// We use const to note to he user that they can use constants,
 	// but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
     if (config.cpid) iotcl_free((char *) config.cpid);

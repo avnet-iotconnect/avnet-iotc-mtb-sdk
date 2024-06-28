@@ -13,10 +13,6 @@
 /* Middleware libraries */
 #include "cy_retarget_io.h"
 
-#ifndef CY_RTOS_AWARE
-#include "cy_lwip.h"
-#endif
-
 #include "cy_mqtt_api.h"
 #include "clock.h"
 
@@ -49,66 +45,66 @@
 #define IOTC_MQTT_CONN_RETRY_INTERVAL_MS      (5000)
 #endif
 
+/*String that describes the MQTT handle that is being created in order to uniquely identify it*/
+#define MQTT_HANDLE_DESCRIPTOR            "IoTConnect"
+
 static cy_mqtt_t mqtt_connection;
 static uint8_t mqtt_network_buffer[MQTT_NETWORK_BUFFER_SIZE];
 static bool is_connected = false;
 static bool is_disconnect_requested = false;
 static bool is_mqtt_initialized = false;
-static bool is_in_callback = false;
 static IotConnectMqttInboundMessageCallback mqtt_inbound_msg_cb = NULL; // callback for inbound messages
 static IotConnectStatusCallback status_cb = NULL; // callback for connection status
 
 static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, void *user_data) {
     (void) mqtt_handle;
     (void) user_data;
-    is_in_callback = true;
     switch (event.type) {
-    case CY_MQTT_EVENT_TYPE_DISCONNECT: {
-        /* MQTT connection with the MQTT broker is broken as the client
-         * is unable to communicate with the broker. Set the appropriate
-         * command to be sent to the MQTT task.
-         */
-        printf("Unexpectedly disconnected from MQTT broker!\n");
+		case CY_MQTT_EVENT_TYPE_DISCONNECT: {
+			/* MQTT connection with the MQTT broker is broken as the client
+			 * is unable to communicate with the broker. Set the appropriate
+			 * command to be sent to the MQTT task.
+			 */
+			printf("Unexpectedly disconnected from MQTT broker!\n");
 
-        /* Send the message to the MQTT client task to handle the
-         * disconnection.
-         */
-        if (status_cb) {
-            status_cb(IOTC_CS_MQTT_DISCONNECTED);
-        }
-        break;
-    }
+			/* Send the message to the MQTT client task to handle the
+			 * disconnection.
+			 */
+			if (status_cb) {
+				status_cb(IOTC_CS_MQTT_DISCONNECTED);
+			}
+			break;
+		}
 
-    case CY_MQTT_EVENT_TYPE_SUBSCRIPTION_MESSAGE_RECEIVE: {
-        cy_mqtt_publish_info_t *received_msg;
+		case CY_MQTT_EVENT_TYPE_SUBSCRIPTION_MESSAGE_RECEIVE: {
+			cy_mqtt_publish_info_t *received_msg;
 
 
-        /* Incoming MQTT message has been received. Send this message to
-         * the subscriber callback function to handle it.
-         */
-        received_msg = &(event.data.pub_msg.received_message);
-        if (mqtt_inbound_msg_cb && !is_disconnect_requested) {
-        	// we must ensure that this is a null-terminated string here
-        	char * topic_str = malloc(received_msg->topic_len + 1);
-        	if (!topic_str) {
-                printf("Out of memory while trying to allocate the topic string!\n");
-        		break;
-        	}
-        	memcpy(topic_str, received_msg->topic, received_msg->topic_len);
-        	topic_str[received_msg->topic_len] = 0; // terminate it
-            mqtt_inbound_msg_cb(received_msg->topic, received_msg->payload, received_msg->payload_len);
-            free(topic_str);
-        }
-        is_disconnect_requested = false;
-        break;
+			/* Incoming MQTT message has been received. Send this message to
+			 * the subscriber callback function to handle it.
+			 */
+			received_msg = &(event.data.pub_msg.received_message);
+			if (mqtt_inbound_msg_cb && !is_disconnect_requested) {
+				// we must ensure that this is a null-terminated string here
+				char * topic_str = malloc(received_msg->topic_len + 1);
+				if (!topic_str) {
+					printf("Out of memory while trying to allocate the topic string!\n");
+					break;
+				}
+				memcpy(topic_str, received_msg->topic, received_msg->topic_len);
+				topic_str[received_msg->topic_len] = 0; // terminate it
+				mqtt_inbound_msg_cb(received_msg->topic, received_msg->payload, received_msg->payload_len);
+				free(topic_str);
+			}
+			is_disconnect_requested = false;
+			break;
+		}
+		default: {
+			/* Unknown MQTT event */
+			printf("Unknown Event received from MQTT callback!\n");
+			break;
+		}
     }
-    default: {
-        /* Unknown MQTT event */
-        printf("Unknown Event received from MQTT callback!\n");
-        break;
-    }
-    }
-    is_in_callback = false;
 }
 
 static cy_rslt_t mqtt_subscribe(IotclMqttConfig *mc, cy_mqtt_qos_t qos) {
@@ -180,7 +176,6 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     cy_rslt_t result = CY_RSLT_SUCCESS;
     cy_rslt_t ret = CY_RSLT_SUCCESS;
     is_connected = false;
-    is_in_callback = false;
 
     result = cy_mqtt_disconnect(mqtt_connection);
     if (result) {
@@ -238,12 +233,6 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
     publish_info.payload = payload;
     publish_info.payload_len = strlen(payload);
 
-    if (is_in_callback) {
-        // TODO: If we send messages while in callback with QOS1,
-        // message sending hangs with QOS != 0
-    	publish_info.qos = 0;
-    }
-
     result = cy_mqtt_publish(mqtt_connection, &publish_info);
 
     if (result != CY_RSLT_SUCCESS) {
@@ -256,6 +245,7 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
 cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     /* Variable to indicate status of various operations. */
     cy_rslt_t result;
+
     IotclMqttConfig* mc = iotcl_mqtt_get_config();
     if (!mc) {
     	return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
@@ -267,7 +257,6 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     status_cb = NULL;
     is_connected = false;
     is_disconnect_requested = false;
-    is_in_callback = false;
 
     /* Initialize the MQTT library. */
     result = cy_mqtt_init();
@@ -312,11 +301,23 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
 	security_info.private_key_size = c->x509_config->device_key ? strlen(c->x509_config->device_key) + 1 : 0;
 
     /* Create the MQTT client instance. */
-    result = cy_mqtt_create(mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, &security_info, &broker_info,
-            (cy_mqtt_callback_t) mqtt_event_callback, NULL, &mqtt_connection);
+    result = cy_mqtt_create(
+    		mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, //
+			&security_info, &broker_info, //
+			MQTT_HANDLE_DESCRIPTOR, //
+			&mqtt_connection //
+    );
 
     if (result) {
         printf("Failed to create the MQTT client. Error was:0x%08lx\n", result);
+        iotc_cleanup_mqtt();
+        return result;
+    }
+
+	/* Register a MQTT event callback */
+	result = cy_mqtt_register_event_callback( mqtt_connection, (cy_mqtt_callback_t)mqtt_event_callback, NULL );
+    if (result) {
+        printf("Failed to register the MQTT callback! Error was:0x%08lx\n", result);
         iotc_cleanup_mqtt();
         return result;
     }
