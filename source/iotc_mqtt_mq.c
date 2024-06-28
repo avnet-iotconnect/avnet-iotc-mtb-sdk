@@ -1,3 +1,8 @@
+/* SPDX-License-Identifier: MIT
+ * Copyright (C) 2024 Avnet
+ * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
+ */
+
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -10,7 +15,7 @@
 #endif
 
 typedef struct IotcMqMessage {
-	char* topic;
+	char *topic;
 	char *message;
 	size_t message_len;
 } IotcMqMessage;
@@ -71,6 +76,7 @@ void iotc_mq_on_mqtt_inbound_message(const char* topic, const char *message, siz
 
     if (!client_msg_cb) {
     	printf("ERROR: iotc_mq: Received a message, but no callback registered!\n");
+    	return;
     }
 
     if (false == iotc_mq_create_message(&msg, topic, message, message_len)) {
