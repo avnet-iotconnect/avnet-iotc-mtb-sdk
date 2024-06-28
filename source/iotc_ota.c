@@ -17,13 +17,13 @@
 #include "cy_ota_storage_api.h"
 
 #include "iotcl_certs.h"
-#include "iotc_ota.h"
+#include "iotcl.h"
+#include "iotcl_util.h"
 
+#include "iotc_ota.h"
 
 /* Application ID */
 #define APP_ID                              (0)
-
-
 #define HTTP_SERVER_PORT	443
 
 /*******************************************************************************
@@ -42,8 +42,6 @@ static cy_ota_storage_interface_t ota_interfaces =
    .ota_file_validate        = cy_ota_storage_image_validate,
    .ota_file_get_app_info    = cy_ota_storage_get_app_info
 };
-
-extern char *iotcl_strdup(const char *str);
 
 /*******************************************************************************
  * Function Name: ota_callback()
@@ -259,15 +257,14 @@ static cy_ota_network_params_t ota_network_params = {
 static cy_rslt_t iotc_ota_stop(void) {
 	if (ota_network_params.http.file != NULL) {
 		const char* file = ota_network_params.http.file;
-		free((char* )file);
+		iotcl_free((char* )file);
 		ota_network_params.http.file = NULL;
 	}
 	if (ota_network_params.http.server.host_name != NULL) {
 		const char* host_name = ota_network_params.http.server.host_name;
-		free((char* )host_name);
+		iotcl_free((char* )host_name);
 		ota_network_params.http.server.host_name = NULL;
-	}
-	else {
+	} else {
 		return -1;
 	}
 	return CY_RSLT_SUCCESS;
