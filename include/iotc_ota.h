@@ -17,7 +17,10 @@
 // Call this once in the application
 cy_rslt_t iotc_ota_init(void);
 
-// Validate the update so we do not revert
+// Validate the update so we do not revert.
+// After ota update is successful, the board reboots and the new firmware that comes up needs
+// to make this call after performing self-test to indicate to the bootloader that the image is healthy.
+// Otherwise, the bootloader will swap back to the original firmware.
 cy_rslt_t iotc_ota_storage_validated(void);
 
 // The callback is optional. If not provided, this module will handle OTA for the user by printing status messages
