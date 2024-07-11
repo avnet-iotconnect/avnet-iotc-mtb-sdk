@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT
  * Copyright (C) 2024 Avnet
- * Authors: Shu Liu <shu.liu@avnet.com> et al.
+ * Authors: Shu Liu <shu.liu@avnet.com>, Nik Markovic<nikola.markovic@avnet.com> et al.
  */
 
 
@@ -290,7 +290,6 @@ cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *h
 		printf("Initializing and starting the OTA agent failed. Error is %lu\n", result);
 		iotc_ota_cleanup();
 	}
-
 	return result;
 }
 
@@ -302,7 +301,7 @@ cy_rslt_t iotc_ota_run(IotConnectConnectionType connection_type, const char *hos
 	}
 	app_task_handle = xTaskGetCurrentTaskHandle();
 	// wait for OTA completion
-	ulTaskNotifyTake(pdTRUE, 60 * 60 * 1000); // one hour
+	ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(60 * 60 * 1000)); // one hour
 
 	iotc_ota_cleanup();
 
@@ -310,7 +309,7 @@ cy_rslt_t iotc_ota_run(IotConnectConnectionType connection_type, const char *hos
 	return result;
 }
 
-cy_rslt_t iotc_ota_get_dowload_status(void) {
+cy_rslt_t iotc_ota_get_download_status(void) {
 	return last_session_result;
 }
 
@@ -323,7 +322,7 @@ const char* iotc_ota_get_download_error_string(void) {
 }
 
 void iotc_ota_system_reset(void) {
-	// we don't
+	// we don't have support for ThreadX, but there just in case we add it
 #ifdef COMPONENT_THREADX
 	cyhal_system_reset_device();
 #else
@@ -341,8 +340,6 @@ void iotc_ota_cleanup() {
 		iotcl_free((char *) ota_network_params.http.server.host_name);
 		ota_network_params.http.server.host_name = NULL;
 	}
-
 }
-
 
 #endif // IOTC_OTA_SUPPORT

@@ -25,7 +25,8 @@ cy_rslt_t iotc_ota_storage_validated(void);
 
 // Synchronous call to start the OTA agent, that will block until the OTA agent completes.
 // The call will return the status or the initial agent start call.
-// The user must get the download status/error to determine whether the download ultimately succeeded.
+// The user must get the download status/error with iotc_ota_get_download_* functions
+// to determine whether the download ultimately succeeded.
 // Unlike the iotc_ota_start case, the user does not need to call iotc_ota_cleanup(). It will be handled internally.
 // The callback is optional. If not provided, this module will handle OTA for the user by printing status messages.
 cy_rslt_t iotc_ota_run(IotConnectConnectionType connection_type, const char* host, const char* path, cy_ota_callback_t usr_ota_cb);
@@ -39,8 +40,10 @@ cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char* h
 // Call this if you ran the asynchronous iotc_ota_start when OTA agent task completes.
 void iotc_ota_cleanup();
 
-// Returns last error and status of the OTA download
-cy_rslt_t iotc_ota_get_dowload_status(void);
+// Returns last status of the OTA download
+cy_rslt_t iotc_ota_get_download_status(void);
+
+// Returns last error as string of the OTA download. NULL if it was successful.
 const char* iotc_ota_get_download_error_string(void);
 
 // Once OTA has been successful, issue a system reset
