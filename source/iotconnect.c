@@ -222,6 +222,12 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
     config.env = (const char *) iotcl_strdup(c->env);
     config.duid = (const char *) iotcl_strdup(c->duid);
 
+    // initialize the queue first so we can safely deinit below without crashing.
+    cy_rslt_t result = iotc_mq_init(c->mq_max_messages);
+	if (CY_RSLT_SUCCESS != result) {
+		return result;
+	}
+
     if (!c->env || !c->cpid || !c->duid) {
         printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required!\n");
         iotconnect_sdk_deinit();
@@ -238,11 +244,6 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
         printf("IOTC: Error: mq_max_messages needs to be greater than zero!\n");
         return IOTCL_ERR_CONFIG_ERROR;
     }
-
-    cy_rslt_t result = iotc_mq_init(c->mq_max_messages);
-	if (CY_RSLT_SUCCESS != result) {
-		return result;
-	}
 
     IotclClientConfig iotcl_cfg;
 	iotcl_init_client_config(&iotcl_cfg);
