@@ -3,6 +3,9 @@
  * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
  */
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "cyhal.h"
 #include "cybsp.h"
 
@@ -67,6 +70,7 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
 			 */
 			printf("Unexpectedly disconnected from MQTT broker!\n");
 
+			is_connected = false;
 			/* Send the message to the MQTT client task to handle the
 			 * disconnection.
 			 */
@@ -160,10 +164,17 @@ static cy_rslt_t mqtt_connect(IotclMqttConfig *mc) {
             printf("MQTT connection successful.\n");
             return result;
         }
-
-        printf("MQTT connection failed with error code 0x%08x. Retrying in %d ms. Retries left: %d\n", (int) result,
-        IOTC_MQTT_CONN_RETRY_INTERVAL_MS, (int) (IOTC_MAX_MQTT_CONN_RETRIES - retry_count - 1));
-        vTaskDelay(pdMS_TO_TICKS(IOTC_MQTT_CONN_RETRY_INTERVAL_MS));
+#ifdef IOTC_NO_EXPONENTIAL_BACKOFF
+        // Define IOTC_NO_EXPONENTIAL_BACKOFF this if your build does not have rand()
+        unsigned int backoff = IOTC_MQTT_CONN_RETRY_INTERVAL_MS;
+#else
+        unsigned int backoff = (rand() % IOTC_MQTT_CONN_RETRY_INTERVAL_MS) + 1;
+#endif
+        printf("MQTT connection failed with error code 0x%08x. Retrying in %u ms. Retries left: %d\n",
+        		(int) result,
+        		backoff,
+				(int) (IOTC_MAX_MQTT_CONN_RETRIES - retry_count - 1));
+        vTaskDelay(pdMS_TO_TICKS(backoff));
     }
 
     printf("Exceeded maximum MQTT connection attempts\n");
@@ -183,7 +194,6 @@ static cy_rslt_t iotc_cleanup_mqtt() {
         is_disconnect_requested = false;
         ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
     }
-    is_connected = false;
 
     if (mqtt_connection) {
         result = cy_mqtt_delete(mqtt_connection);
@@ -236,7 +246,7 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
     result = cy_mqtt_publish(mqtt_connection, &publish_info);
 
     if (result != CY_RSLT_SUCCESS) {
-        printf("  Publisher: MQTT Publish failed with error 0x%0X.\n", (int) result);
+        printf("Publisher: MQTT Publish failed with error 0x%0X.\n", (int) result);
         return result;
     }
     return CY_RSLT_SUCCESS;
@@ -265,6 +275,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
         printf("Failed to initialize the MQTT library. Error was:0x%08lx\n", result);
         return result;
     }
+    is_mqtt_initialized = true;
 
     cy_mqtt_broker_info_t broker_info = { //
     		.hostname = mc->host, //
