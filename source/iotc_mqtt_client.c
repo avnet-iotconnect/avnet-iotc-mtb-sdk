@@ -188,14 +188,18 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     cy_rslt_t ret = CY_RSLT_SUCCESS;
     is_connected = false;
 
-    result = cy_mqtt_disconnect(mqtt_connection);
-    if (result) {
-        printf("Failed to disconnect the MQTT client. Error was:0x%08lx\n", result);
-        is_disconnect_requested = false;
-        ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
-    }
-
     if (mqtt_connection) {
+		result = cy_mqtt_disconnect(mqtt_connection);
+		if (result) {
+			// Check for 0x08060002
+			printf("Failed to disconnect the MQTT client. Error was:0x%08lx\n", result);
+			is_disconnect_requested = false;
+
+			// only overwrite ret if last result was a success.
+			// Do not write the oldest failure
+			ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
+		}
+
         result = cy_mqtt_delete(mqtt_connection);
         if (result) {
             printf("Failed to delete the MQTT client. Error was:0x%08lx\n", result);
