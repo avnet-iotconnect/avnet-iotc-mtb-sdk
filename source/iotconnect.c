@@ -23,6 +23,63 @@
 
 IotConnectClientConfig config = {0};
 
+#ifdef IOTC_AWS_DEVICE_QUALIFICATION
+
+// See AWS_DEFICE_QUALIFICATION.md in this SDK repo for more details.
+
+static void iotc_qualification_start(const char* host) {
+	if (!host || strlen(host) < 10) {
+		printf("IOTC qualification: Hostname is invalid!\n");
+	}
+	iotconnect_sdk_disconnect();
+	iotcl_free(iotcl_mqtt_get_config()->host);
+	iotcl_free(iotcl_mqtt_get_config()->pub_rpt);
+	iotcl_free(iotcl_mqtt_get_config()->pub_ack);
+	iotcl_free(iotcl_mqtt_get_config()->sub_c2d);
+	iotcl_mqtt_get_config()->host = iotcl_strdup(host); // get the command argument
+	iotcl_mqtt_get_config()->pub_rpt = iotcl_strdup("qualification");
+	iotcl_mqtt_get_config()->pub_ack = iotcl_strdup("qualification");
+	iotcl_mqtt_get_config()->sub_c2d = iotcl_strdup("qualification");
+
+
+	TickType_t last_connected = xTaskGetTickCount();
+	while (true) {
+		if (!iotconnect_sdk_is_connected()) {
+        	iotconnect_sdk_disconnect();
+            vTaskDelay(pdMS_TO_TICKS(10000));
+        	iotconnect_sdk_connect();
+			last_connected = xTaskGetTickCount();
+		}
+		IotclMessageHandle msg = iotcl_telemetry_create();
+    	iotcl_telemetry_set_string(msg, "qualification", "true");
+    	iotcl_mqtt_send_telemetry(msg, false);
+        iotcl_telemetry_destroy(msg);
+        iotconnect_sdk_poll_inbound_mq(5000);
+        if (((xTaskGetTickCount() - last_connected) * portTICK_PERIOD_MS) > 60000) {
+        	printf("----------\nWARNING: Connection lingered for too long. Restarting the connection\n----------\n");
+        	iotconnect_sdk_disconnect();
+        }
+	}
+}
+
+static void on_command_intercept(IotclC2dEventData data) {
+    const char * const QUALIFICATION_START_PREFIX_CMD = "aws-qualification-start "; // with a space
+    const char *command = iotcl_c2d_get_command(data);
+
+    // Even if in qualification mode, notify the application so it can stop any background activity
+    if (config.callbacks.cmd_cb) {
+		config.callbacks.cmd_cb(data);
+	}
+
+    if (command && (0 == strncmp(QUALIFICATION_START_PREFIX_CMD, command, strlen(QUALIFICATION_START_PREFIX_CMD)))) {
+    	const char* qual_host = &command[strlen(QUALIFICATION_START_PREFIX_CMD)];
+    	// This function should block forever and not allow the main application loop to continue
+    	// the called function will check the host parameter
+    	iotc_qualification_start(qual_host);
+    }
+}
+#endif // IOTC_AWS_DEVICE_QUALIFICATION
+
 static void default_on_connection_status(IotConnectConnectionStatus status) {
     // Add your own status handling
     switch (status) {
@@ -251,8 +308,12 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
 	iotcl_cfg.device.duid = c->duid;
 	iotcl_cfg.device.instance_type = IOTCL_DCT_CUSTOM;
 	iotcl_cfg.mqtt_send_cb = iotconnect_sdk_mqtt_send_cb;
-	iotcl_cfg.events.cmd_cb = c->callbacks.cmd_cb;
 	iotcl_cfg.events.ota_cb = c->callbacks.ota_cb;
+#ifdef IOTC_AWS_DEVICE_QUALIFICATION
+	iotcl_cfg.events.cmd_cb = on_command_intercept;
+#else
+	iotcl_cfg.events.cmd_cb = c->callbacks.cmd_cb;
+#endif
 
     if (c->verbose) {
         status = iotcl_init_and_print_config(&iotcl_cfg);
