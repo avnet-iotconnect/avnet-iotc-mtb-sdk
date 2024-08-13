@@ -191,7 +191,6 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     if (mqtt_connection) {
 		result = cy_mqtt_disconnect(mqtt_connection);
 		if (result) {
-			// Check for 0x08060002
 			printf("Failed to disconnect the MQTT client. Error was:0x%08lx\n", result);
 			is_disconnect_requested = false;
 
