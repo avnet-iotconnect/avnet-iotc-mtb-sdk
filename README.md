@@ -3,7 +3,7 @@ Refer to the [example project](https://github.com/avnet-iotconnect/iotc-modustoo
 to use as a reference when using this SDK.
 
 This code is based on the [mtb-example-anycloud-mqtt-client](https://github.com/Infineon/mtb-example-anycloud-mqtt-client) project 
- and indirectly on the Infineon's [MQTT v3.4.2](https://github.com/Infineon/mqtt) client library.
+ and indirectly on the Infineon's [mqtt](https://github.com/Infineon/mqtt) client library.
 
 ## Dependencies
 The project uses the following dependent projects as git submodules:
