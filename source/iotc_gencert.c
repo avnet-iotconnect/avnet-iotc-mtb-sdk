@@ -9,7 +9,6 @@
 
 /* mbedTLS includes. */
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_internal.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
