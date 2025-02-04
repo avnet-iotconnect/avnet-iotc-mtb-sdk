@@ -40,7 +40,7 @@
 #define IOTC_GENCRT_SUBJECT_NAME 		"CN=IoTConnectDevCert,O=Avnet,C=US"
 #endif
 
-// reference code from https://github.com/Mbed-TLS/mbedtls/issues/7050 and mbedtsl examples
+// reference code from https://github.com/Mbed-TLS/mbedtls/issues/7050 and mbedtls examples
 static int generate_selfsigned_cert(mbedtls_pk_context *key, unsigned char* pem_buffer, size_t buf_len) {
 	int ret = 1;
 	mbedtls_mpi serial;
@@ -54,11 +54,6 @@ static int generate_selfsigned_cert(mbedtls_pk_context *key, unsigned char* pem_
 	// use the unique ID of chip as certificate serial number
     uint64_t hwuid = IOTC_GENCRT_SERIAL_FUNC();
 
-	if ((ret = mbedtls_mpi_read_binary(&serial, (const unsigned char *) &hwuid, sizeof(hwuid))) != 0) {
-		printf("GENCRT: Failed to read binary from hwuid!\n");
-		goto exit;
-	}
-
 	mbedtls_x509write_crt_set_subject_key(&crt, key);
 	mbedtls_x509write_crt_set_issuer_key(&crt, key);
 
@@ -66,7 +61,6 @@ static int generate_selfsigned_cert(mbedtls_pk_context *key, unsigned char* pem_
 		printf("GENCRT: Failed to set subject name!\n");
 		goto exit;
 	}
-
 
 	// This will be a root cert signed by itself
 	if ((ret = mbedtls_x509write_crt_set_issuer_name(&crt, IOTC_GENCRT_SUBJECT_NAME)) != 0) {
@@ -76,8 +70,7 @@ static int generate_selfsigned_cert(mbedtls_pk_context *key, unsigned char* pem_
 	mbedtls_x509write_crt_set_version(&crt, MBEDTLS_X509_CRT_VERSION_3);
 	mbedtls_x509write_crt_set_md_alg(&crt, IOTC_GENCRT_SIGN_ALG);
 
-	ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
-	if (ret != 0) {
+	ret = mbedtls_x509write_crt_set_serial_raw(&crt, (unsigned char *) &hwuid, sizeof(hwuid));	if (ret != 0) {
 		printf("GENCERT: Failed write set cert serial!\n");
 		goto exit;
 	}
