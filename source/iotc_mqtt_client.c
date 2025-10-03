@@ -176,7 +176,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     if (mqtt_connection) {
 		result = cy_mqtt_disconnect(mqtt_connection);
 		if (result) {
-			printf("Failed to disconnect the MQTT client. Error was:0x%08lx\n", result);
+			printf("Failed to disconnect the MQTT client. Error was:0x%08x\n", result);
 			is_disconnect_requested = false;
 
 			// only overwrite ret if last result was a success.
@@ -186,7 +186,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
 
         result = cy_mqtt_delete(mqtt_connection);
         if (result) {
-            printf("Failed to delete the MQTT client. Error was:0x%08lx\n", result);
+            printf("Failed to delete the MQTT client. Error was:0x%08x\n", (unsigned int) result);
         }
         mqtt_connection = NULL;
         ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
@@ -195,7 +195,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     if (is_mqtt_initialized) {
         result = cy_mqtt_deinit();
         if (result) {
-            printf("Failed to deinit the MQTT client. Error was:0x%08lx\n", result);
+            printf("Failed to deinit the MQTT client. Error was:0x%08x\n", (unsigned int) result);
         }
         is_mqtt_initialized = false;
         ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
@@ -260,7 +260,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     result = cy_mqtt_init();
     if (result) {
         iotc_cleanup_mqtt();
-        printf("Failed to initialize the MQTT library. Error was:0x%08lx\n", result);
+        printf("Failed to initialize the MQTT library. Error was:0x%08x\n", (unsigned int) result);
         return result;
     }
     is_mqtt_initialized = true;
@@ -308,7 +308,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     );
 
     if (result) {
-        printf("Failed to create the MQTT client. Error was:0x%08lx\n", result);
+        printf("Failed to create the MQTT client. Error was:0x%08x\n", (unsigned int) result);
         iotc_cleanup_mqtt();
         return result;
     }
@@ -316,7 +316,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
 	/* Register a MQTT event callback */
 	result = cy_mqtt_register_event_callback( mqtt_connection, (cy_mqtt_callback_t)mqtt_event_callback, NULL );
     if (result) {
-        printf("Failed to register the MQTT callback! Error was:0x%08lx\n", result);
+        printf("Failed to register the MQTT callback! Error was:0x%08x\n", (unsigned int) result);
         iotc_cleanup_mqtt();
         return result;
     }
@@ -328,7 +328,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     }
     result = mqtt_subscribe(mc, (cy_mqtt_qos_t) 1);
     if (result) {
-        printf("Failed to subscribe to the MQTT topic. Error was:0x%08lx\n", result);
+        printf("Failed to subscribe to the MQTT topic. Error was:0x%08x\n", result);
         iotc_cleanup_mqtt();
         return result;
     }

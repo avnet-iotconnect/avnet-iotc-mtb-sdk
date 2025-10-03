@@ -50,13 +50,13 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
 
     res = cy_http_client_init();
     if (res != CY_RSLT_SUCCESS) {
-        printf("Failed to init the http client. Error=0x%08lx\n", res);
+        printf("Failed to init the http client. Error=0x%08x\n", (unsigned int) res);
         return res;
     }
 
     res = cy_http_client_create(&credentials, &server_info, NULL, NULL, &handle);
     if (res != CY_RSLT_SUCCESS) {
-        printf("Failed to create the http client. Error=0x%08lx.\n", res);
+        printf("Failed to create the http client. Error=0x%08x.\n", (unsigned int) res);
         goto cleanup_deinit;
     }
 
@@ -65,7 +65,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
         res = cy_http_client_connect(handle, IOTC_HTTP_SEND_RECV_TIMEOUT_MS, IOTC_HTTP_SEND_RECV_TIMEOUT_MS);
         i--;
         if (res != CY_RSLT_SUCCESS) {
-            printf("Failed to connect to http server. Error=0x%08lx. ", res);
+            printf("Failed to connect to http server. Error=0x%08x. ", (unsigned int) res);
             if (i <= 0) {
                 printf("Giving up! Max retry count %d reached\n", IOTC_HTTP_CONNECT_MAX_RETRIES);
                 goto cleanup_delete;
@@ -98,7 +98,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     /* Generate the standard header and user-defined header, and update in the request structure. */
     res = cy_http_client_write_header(handle, &request, &header[0], num_headers);
 	if (res != CY_RSLT_SUCCESS) {
-		printf("Failed write HTTP headers. Error=0x%08lx\n", res);
+		printf("Failed write HTTP headers. Error=0x%08x\n", res);
 		goto cleanup_disconnect;
 	}
 
@@ -106,7 +106,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
    	res = cy_http_client_send(handle, &request, (uint8_t*) send_str, (send_str ? strlen(send_str) : 0), &client_resp);
 
     if (res != CY_RSLT_SUCCESS) {
-        printf("Failed send the HTTP request. Error=0x%08lx\n", res);
+        printf("Failed send the HTTP request. Error=0x%08x\n", (unsigned int) res);
         goto cleanup_disconnect;
     }
 
@@ -141,4 +141,3 @@ void iotconnect_free_https_response(IotConnectHttpResponse *response) {
         response->data = NULL;
     }
 }
-
