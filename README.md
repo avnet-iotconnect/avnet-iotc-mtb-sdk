@@ -1,4 +1,4 @@
-This repository contains the IoTConnect ModusToolbox SDK for use with Infineon PSOC6 and similar products.
+This repository contains the IoTConnect ModusToolbox SDK for use with Infineon PSOC6, PSOC EDGE and similar products.
 Refer to the [example project](https://github.com/avnet-iotconnect/iotc-modustoolbox-example)
 to use as a reference when using this SDK.
 

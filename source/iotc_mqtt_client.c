@@ -6,21 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "cyhal.h"
-#include "cybsp.h"
-
 /* FreeRTOS header files */
 #include "FreeRTOS.h"
 #include "task.h"
 
-/* Middleware libraries */
-#include "cy_retarget_io.h"
-
 #include "cy_mqtt_api.h"
-#include "clock.h"
-
-/* LwIP header files */
-#include "lwip/netif.h"
 
 #include "iotcl_certs.h"
 #include "iotc_mqtt_client.h"
@@ -30,11 +20,6 @@
 
 /* Time interval in milliseconds between MQTT subscribe retries. */
 #define MQTT_SUBSCRIBE_RETRY_INTERVAL_MS        (1000)
-
-/* Queue length of a message queue that is used to communicate with the
- * subscriber task.
- */
-#define SUBSCRIBER_TASK_QUEUE_LENGTH            (1u)
 
 #define MQTT_NETWORK_BUFFER_SIZE          ( 4 * CY_MQTT_MIN_NETWORK_BUFFER_SIZE )
 
