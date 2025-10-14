@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT
- * Copyright (C) 2024 Avnet
+ * Copyright (C) 2025 Avnet
  * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
  */
 
@@ -98,7 +98,7 @@ unsigned int iotconnect_https_request(IotConnectHttpResponse *response, const ch
     /* Generate the standard header and user-defined header, and update in the request structure. */
     res = cy_http_client_write_header(handle, &request, &header[0], num_headers);
 	if (res != CY_RSLT_SUCCESS) {
-		printf("Failed write HTTP headers. Error=0x%08x\n", res);
+		printf("Failed write HTTP headers. Error=0x%08x\n", (unsigned int) res);
 		goto cleanup_disconnect;
 	}
 
