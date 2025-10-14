@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: MIT
- * Copyright (C) 2024 Avnet
+ * Copyright (C) 2025 Avnet
  * Authors: Nikola Markovic <nikola.markovic@avnet.com> et al.
  */
 
@@ -176,7 +176,7 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     if (mqtt_connection) {
 		result = cy_mqtt_disconnect(mqtt_connection);
 		if (result) {
-			printf("Failed to disconnect the MQTT client. Error was:0x%08x\n", result);
+			printf("Failed to disconnect the MQTT client. Error was:0x%08x\n", (unsigned int) result);
 			is_disconnect_requested = false;
 
 			// only overwrite ret if last result was a success.
@@ -328,7 +328,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     }
     result = mqtt_subscribe(mc, (cy_mqtt_qos_t) 1);
     if (result) {
-        printf("Failed to subscribe to the MQTT topic. Error was:0x%08x\n", result);
+        printf("Failed to subscribe to the MQTT topic. Error was:0x%08x\n", (unsigned int) result);
         iotc_cleanup_mqtt();
         return result;
     }
