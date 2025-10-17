@@ -17,7 +17,7 @@
 #include "iotcl_util.h"
 
 #ifndef IOTC_MTB_TIME_MAX_TRIES
-#define IOTC_MTB_TIME_MAX_TRIES 10
+#define IOTC_MTB_TIME_MAX_TRIES 15
 #endif
 
 #if defined(MTB_HAL_API_VERSION) && ((MTB_HAL_API_VERSION) >= 3)
