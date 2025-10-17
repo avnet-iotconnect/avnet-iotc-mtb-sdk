@@ -39,7 +39,7 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     * function being called */
     #if defined(MTB_HAL_API_VERSION) && ((MTB_HAL_API_VERSION) >= 3)
     mtb_time_rtc_ptr = mtb_clib_support_get_rtc();
-    CY_ASSERT(CY_RSLT_SUCCESS == result);
+    CY_ASSERT(NULL != mtb_time_rtc_ptr);
     result = mtb_hal_rtc_write(mtb_time_rtc_ptr, gmtime(&secs_time_t));
     #else /* Older HAL versions define CYHAL_API_VERSION */
     result = cyhal_rtc_init(&cy_time_rtc_inst);
