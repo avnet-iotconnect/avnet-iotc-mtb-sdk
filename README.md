@@ -1,13 +1,34 @@
-This repository contains the IoTConnect ModusToolbox SDK for use with Infineon PSOC6, PSOC EDGE and similar products.
-Refer to the [example project](https://github.com/avnet-iotconnect/iotc-modustoolbox-example)
-to use as a reference when using this SDK.
+This repository contains the /IOTCONNECT ModusToolbox SDK for use with Infineon PSOC6, PSOC EDGE and similar products.
 
-This code is based on the [mtb-example-anycloud-mqtt-client](https://github.com/Infineon/mtb-example-anycloud-mqtt-client) project 
- and indirectly on the Infineon's [mqtt](https://github.com/Infineon/mqtt) client library.
+Refer to the [PSOC6 Basic Example](https://github.com/avnet-iotconnect/avnet-iotc-mtb-basic-example) project 
+for a reference PSOC6 implementation and OTA support.
+
+Refer to the [PSOC Edge Baby Monitor](https://github.com/avnet-iotconnect/avnet-iotc-mtb-psoc-edge-baby-monitor) project 
+for a reference PSOC Edge implementation.
+
+This code is primarily based on the 
+[mtb-example-wifi-mqtt-client](https://github.com/Infineon/mtb-example-wifi-mqtt-client)
+project on PSOC6, and the
+[mtb-example-psoc-edge-wifi-mqtt-client](https://github.com/Infineon/mtb-example-anycloud-mqtt-client)
+project on PSOC Edge.
 
 ## Dependencies
+
 The project uses the following dependent projects as git submodules:
 * [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git)
 
-## Contributing To This Project
-When  contributing to this project, please follow the contributing guidelines for [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib/blob/master/CONTRIBUTING.md) where applicable and possible.
+Additionally, the project importing the SDK, should import the following libraries:
+* [mqtt](https://github.com/Infineon/mqtt):
+MQTT support (tested with v4.7.0)
+* [http-client](https://github.com/Infineon/http-client):
+HTTPS Support (tested with v1.8.1)
+* [retarget-io](https://github.com/Infineon/retarget-io):
+Stdio redirect to UART (tested with v1.8.1)
+* [ifi-core-freertos-lwip-mbedtls](https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls):
+WiFi and MbedTLS with FreeRTOS (tested with v3.1.0 on PSOC Edge)
+
+## Contributing To This Project 
+
+When contributing to this project, please follow the contributing guidelines for 
+[iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib/blob/master/CONTRIBUTING.md) 
+where applicable and possible.
