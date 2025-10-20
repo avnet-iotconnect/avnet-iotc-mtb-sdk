@@ -15,7 +15,7 @@ project on PSOC Edge.
 ## Dependencies
 
 The project uses the following dependent projects as git submodules:
-* [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git)
+* [iotc-c-lib](https://github.com/avnet-iotconnect/iotc-c-lib.git) v3.1.0-proto-v2.1
 
 Additionally, the project importing the SDK, should import the following libraries:
 * [mqtt](https://github.com/Infineon/mqtt):
