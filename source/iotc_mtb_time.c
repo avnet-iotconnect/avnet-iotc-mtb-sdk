@@ -44,6 +44,7 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     #else /* Older HAL versions define CYHAL_API_VERSION */
     result = cyhal_rtc_init(&cy_time_rtc_inst);
     CY_ASSERT(CY_RSLT_SUCCESS == result);
+    cy_set_rtc_instance(&cy_time_rtc_inst); // becomes global clock
     result = cyhal_rtc_write(&cy_time_rtc_inst, gmtime(&secs_time_t));
     #endif
     CY_ASSERT(CY_RSLT_SUCCESS == result);
