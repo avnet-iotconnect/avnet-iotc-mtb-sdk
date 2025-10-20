@@ -6,6 +6,9 @@
 #ifndef IOTC_MTB_TIME_H
 #define IOTC_MTB_TIME_H
 
+// For u32_t
+#include "lwip/arch.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
