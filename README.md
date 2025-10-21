@@ -24,8 +24,8 @@ MQTT support (tested with v4.7.0)
 HTTPS Support (tested with v1.8.1)
 * [retarget-io](https://github.com/Infineon/retarget-io):
 Stdio redirect to UART (tested with v1.8.1)
-* [ifi-core-freertos-lwip-mbedtls](https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls):
-WiFi and MbedTLS with FreeRTOS (tested with v3.1.0 on PSOC Edge)
+* [wifi-core-freertos-lwip-mbedtls](https://github.com/Infineon/wifi-core-freertos-lwip-mbedtls):
+WiFi and MbedTLS with FreeRTOS - version 2.X only supported by PSOC6 (tested with v3.1.0 on PSOC Edge, v2.2.1 on PSOC6) 
 
 ## Contributing To This Project 
 
