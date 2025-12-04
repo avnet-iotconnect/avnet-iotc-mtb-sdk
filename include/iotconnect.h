@@ -30,8 +30,9 @@ typedef void (*IotConnectStatusCallback)(IotConnectConnectionStatus data);
 
 typedef struct {
 	const char* server_ca_cert; // OPTIONAL server cert that will default to AmazonRootCA1 or Digicert G2 depending on connection type
-	const char* device_cert; // Path to a file containing the device CA cert (or chain) in PEM format
-	const char* device_key; // Path to a file containing the device private key in PEM format
+	const char* device_cert; // CA cert (or chain) in PEM format
+	const char* device_key; // Device private key either in PEM format or as an  MbedTLS opaque key (see device_key_size).
+	size_t device_key_size; // If using a PEM private key, you should leave this value at zero. If using opaque keys or similar, set this accordingly.
 } IotConnectX509Config;
 
 

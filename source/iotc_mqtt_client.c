@@ -297,7 +297,13 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
 	security_info.client_cert = c->x509_config->device_cert;
 	security_info.client_cert_size = strlen(c->x509_config->device_cert) + 1;
 	security_info.private_key = c->x509_config->device_key;
-	security_info.private_key_size = c->x509_config->device_key ? strlen(c->x509_config->device_key) + 1 : 0;
+    // NOTE: This could be an opaque key and not a PEM cert.
+    // So if they user sets the size, trust them.
+    // For PEM certs we would expect this size to be zero and use strlen.
+    security_info.private_key_size = c->x509_config->device_key_size;
+    if (0 == security_info.private_key_size) {
+	    security_info.private_key_size = strlen(c->x509_config->device_key) + 1;
+    }
 
     /* Create the MQTT client instance. */
     result = cy_mqtt_create(
