@@ -17,6 +17,10 @@
 #include "iotcl.h"
 #include "iotcl_util.h"
 
+#ifdef CY_TFM_PSA_SUPPORTED
+#include "tfm_platform_api.h"
+#endif
+
 #include "iotc_ota.h"
 
 /* Application ID */
@@ -284,6 +288,8 @@ cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *h
 
 	ota_network_params.http.file = iotcl_strdup(path);
 	ota_network_params.http.server.host_name = iotcl_strdup(host);
+	ota_network_params.http.credentials.sni_host_name = ota_network_params.http.server.host_name;
+	ota_network_params.http.credentials.sni_host_name_size = strlen(ota_network_params.http.server.host_name) + 1; // with null terminator
 
 	cy_rslt_t result = cy_ota_agent_start(&ota_network_params, &ota_agent_params, &ota_interfaces, &ota_context);
 	if (CY_RSLT_SUCCESS != result) {
@@ -325,6 +331,12 @@ void iotc_ota_system_reset(void) {
 	// we don't have support for ThreadX, but there just in case we add it
 #ifdef COMPONENT_THREADX
 	cyhal_system_reset_device();
+#elif defined(CY_TFM_PSA_SUPPORTED)
+	// NVIC_SystemReset() is not allowed in TF-M NS context
+	enum tfm_platform_err_t result = tfm_platform_system_reset();
+	if (result != TFM_PLATFORM_ERR_SUCCESS) {
+		printf("ERROR: Failed to reset device. Error was: %d. Please reset the board manually.\n", (int) result);
+	}
 #else
 	NVIC_SystemReset();
 #endif
