@@ -21,7 +21,9 @@
 /* Time interval in milliseconds between MQTT subscribe retries. */
 #define MQTT_SUBSCRIBE_RETRY_INTERVAL_MS        (1000)
 
-#define MQTT_NETWORK_BUFFER_SIZE          ( 4 * CY_MQTT_MIN_NETWORK_BUFFER_SIZE )
+#ifndef MQTT_NETWORK_BUFFER_SIZE
+#define MQTT_NETWORK_BUFFER_SIZE          ( 4096U )
+#ifdef
 
 /* Maximum MQTT connection re-connection limit. */
 #ifndef IOTC_MAX_MQTT_CONN_RETRIES
