@@ -23,7 +23,7 @@
 
 #ifndef MQTT_NETWORK_BUFFER_SIZE
 #define MQTT_NETWORK_BUFFER_SIZE          (4096U)
-#ifdef
+#endif
 
 /* Maximum MQTT connection re-connection limit. */
 #ifndef IOTC_MAX_MQTT_CONN_RETRIES
