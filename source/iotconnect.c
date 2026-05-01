@@ -157,10 +157,11 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
         return status; // called function will print the error
     }
 
-    iotconnect_https_request(&response,
-                             iotcl_dra_url_get_hostname(&discovery_url),
-                             iotcl_dra_url_get_resource(&discovery_url),
-                             NULL
+    iotconnect_https_request(
+        &response,
+        iotcl_dra_url_get_hostname(&discovery_url),
+        iotcl_dra_url_get_resource(&discovery_url),
+        NULL
     );
 
     status = validate_response(&response);
@@ -180,10 +181,11 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
     status = iotcl_dra_identity_build_url(&identity_url, duid);
     if (status) goto cleanup; // called function will print the error
 
-    iotconnect_https_request(&response,
-                             iotcl_dra_url_get_hostname(&identity_url),
-                             iotcl_dra_url_get_resource(&identity_url),
-                             NULL
+    iotconnect_https_request(
+        &response,
+        iotcl_dra_url_get_hostname(&identity_url),
+        iotcl_dra_url_get_resource(&identity_url),
+        NULL
     );
 
     status = validate_response(&response);
