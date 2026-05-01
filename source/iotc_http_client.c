@@ -146,18 +146,20 @@ unsigned int iotconnect_https_request_with_opts(IotConnectHttpResponse *response
     memcpy(response->data, client_resp.body, client_resp.body_len);
     response->data[client_resp.body_len] = 0; // terminate the string
 
-    cleanup_disconnect:
+cleanup_disconnect:
     res = cy_http_client_disconnect(handle);
     if (res != CY_RSLT_SUCCESS) {
         printf("Failed to disconnect the HTTP client\n");
     }
 
-    cleanup_delete: res = cy_http_client_delete(handle);
+cleanup_delete:
+    res = cy_http_client_delete(handle);
     if (res != CY_RSLT_SUCCESS) {
         printf("Failed to delete the HTTP client\n");
     }
 
-    cleanup_deinit: res = cy_http_client_deinit();
+cleanup_deinit:
+    res = cy_http_client_deinit();
     if (res != CY_RSLT_SUCCESS) {
         printf("Failed to deinit the HTTP client\n");
     }

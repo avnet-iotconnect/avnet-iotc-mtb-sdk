@@ -251,7 +251,9 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
         return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
     }
 
-    if (!mc->sub_c2d)
+    if (!mc->sub_c2d) {
+        return CY_RSLT_MODULE_MQTT_BADARG;
+    }
 
     mqtt_inbound_msg_cb = NULL;
     status_cb = NULL;
@@ -281,7 +283,7 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     if (c->x509_config->server_ca_cert) {
         security_info.root_ca = c->x509_config->server_ca_cert;
     } else {
-        switch(c->connection_type) {
+        switch (c->connection_type) {
         case IOTC_CT_AWS:
             security_info.root_ca = IOTCL_AMAZON_ROOT_CA1;
             break;

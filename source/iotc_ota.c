@@ -23,18 +23,16 @@
 
 #include "iotc_ota.h"
 
-/* Application ID */
-#define APP_ID                              (0)
-#define HTTP_SERVER_PORT    443
+/* Application ID for iotc_ota_storage_validated()*/
+#define APP_ID (0)
 
+#define HTTP_SERVER_PORT 443
 
-
-// Captured task handle that will will resume in case of synchronous OTA
+// Captured task handle for synchronous OTA
 static TaskHandle_t app_task_handle;
 
-
-// Captured last error received at the time of OTA session completion
-static cy_rslt_t last_session_result = CY_RSLT_OTA_ERROR_GENERAL; // assume a failure unless we get CY_OTA_STATE_OTA_COMPLETE
+// Captured last error at OTA session completion
+static cy_rslt_t last_session_result = CY_RSLT_OTA_ERROR_GENERAL;
 
 static cy_ota_context_ptr ota_context;
 
@@ -266,7 +264,7 @@ cy_rslt_t iotc_ota_start(IotConnectConnectionType connection_type, const char *h
         return -1;
     }
 
-    switch(connection_type) {
+    switch (connection_type) {
         case IOTC_CT_AWS:
             ota_network_params.http.credentials.root_ca = IOTCL_AMAZON_ROOT_CA1;
             ota_network_params.http.credentials.root_ca_size = sizeof(IOTCL_AMAZON_ROOT_CA1);

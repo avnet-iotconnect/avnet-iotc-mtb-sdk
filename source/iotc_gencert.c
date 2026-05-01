@@ -70,7 +70,8 @@ static int generate_selfsigned_cert(mbedtls_pk_context *key, unsigned char* pem_
     mbedtls_x509write_crt_set_version(&crt, MBEDTLS_X509_CRT_VERSION_3);
     mbedtls_x509write_crt_set_md_alg(&crt, IOTC_GENCRT_SIGN_ALG);
 
-    ret = mbedtls_x509write_crt_set_serial_raw(&crt, (unsigned char *) &hwuid, sizeof(hwuid));  if (ret != 0) {
+    ret = mbedtls_x509write_crt_set_serial_raw(&crt, (unsigned char *) &hwuid, sizeof(hwuid));
+    if (ret != 0) {
         printf("GENCERT: Failed write set cert serial!\n");
         goto exit;
     }

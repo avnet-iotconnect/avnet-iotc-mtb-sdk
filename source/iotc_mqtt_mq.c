@@ -152,4 +152,3 @@ void iotc_mq_deinit(void) {
         }
     }
 }
-

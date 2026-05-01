@@ -10,7 +10,6 @@
 #include "cy_result.h"
 #include "iotconnect.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

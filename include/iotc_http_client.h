@@ -23,8 +23,8 @@ typedef struct {
     char *ca_cert; // if empty, GoDaddy G2 will be used.
     char *cert; // Optional: Used for mTLS.
     char *key; // Optional: Used for mTLS.
-    IotConnectHttpHeader *headers; // Optional: Additional headers to include in the request (array).
-    size_t headers_len; // Number of additional headers . Ignored if headers is NULL.
+    IotConnectHttpHeader *headers; // Optional: Additional headers (array).
+    size_t headers_len; // Number of additional headers. Ignored if headers is NULL.
 } IotConnectHttpOpts;
 
 typedef struct IotConnectHttpResponse {
@@ -55,4 +55,4 @@ void iotconnect_free_https_response(IotConnectHttpResponse* response);
 }
 #endif
 
-#endif //IOTC_HTTP_CLIENT_H
+#endif // IOTC_HTTP_CLIENT_H
