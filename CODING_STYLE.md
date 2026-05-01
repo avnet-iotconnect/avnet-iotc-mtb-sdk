@@ -42,7 +42,7 @@ static void run_task(void *arg) {
 
 ## Line breaking
 
-Target readable width: up to about 140 columns. Slightly over 140 is allowed for "I don't care to see this code often" for example ona long cookie-cutter variable assignment or declaration.
+Target readable width: up to about 160 columns. Over 160 is allowed for "I don't care to see this code often" for example ona long cookie-cutter variable assignment or declaration.
 
 - Keep short calls/signatures/conditions on one line.
 - If a line gets long, use this continuation form (not stair-step) when more than a handful of args need to be broken up (case when many args):
@@ -79,8 +79,8 @@ printf("Result: %d, error: more long text ... %d\n",
 - Do not collapse already-readable multiline calls into a single long line.
 Column width is a readability guideline, not a hard limit.
 - Aim for condensed code (less LOC). Avoid empty lines, but add them to accent logical grouping or decoupling.
-- Aim for <= 140 columns for most code.
-- It is acceptable to exceed 140 when breaking the line would reduce readability or add noisy wrapping.
+- Aim for <= 160 columns for most code.
+- It is acceptable to exceed 160 when breaking the line would reduce readability or add noisy wrapping.
 - The general wrapping rule is "do I really need to see what's far to the right" or will I benefit more from seeing more important LOCs. 
 - Typical exception: long `printf(...)`/logging calls where arguments are straightforward and already easy to scan especially when many other printfs in the file.
 - Wrap lines when structure must be visually parsed (long conditions, nested calls, many non-trivial arguments, or mixed expressions).
