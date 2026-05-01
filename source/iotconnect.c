@@ -28,38 +28,38 @@ IotConnectClientConfig config = {0};
 // See AWS_DEFICE_QUALIFICATION.md in this SDK repo for more details.
 
 static void iotc_qualification_start(const char* host) {
-	if (!host || strlen(host) < 10) {
-		printf("IOTC qualification: Hostname is invalid!\n");
-	}
-	iotconnect_sdk_disconnect();
-	iotcl_free(iotcl_mqtt_get_config()->host);
-	iotcl_free(iotcl_mqtt_get_config()->pub_rpt);
-	iotcl_free(iotcl_mqtt_get_config()->pub_ack);
-	iotcl_free(iotcl_mqtt_get_config()->sub_c2d);
-	iotcl_mqtt_get_config()->host = iotcl_strdup(host); // get the command argument
-	iotcl_mqtt_get_config()->pub_rpt = iotcl_strdup("qualification");
-	iotcl_mqtt_get_config()->pub_ack = iotcl_strdup("qualification");
-	iotcl_mqtt_get_config()->sub_c2d = iotcl_strdup("qualification");
+    if (!host || strlen(host) < 10) {
+        printf("IOTC qualification: Hostname is invalid!\n");
+    }
+    iotconnect_sdk_disconnect();
+    iotcl_free(iotcl_mqtt_get_config()->host);
+    iotcl_free(iotcl_mqtt_get_config()->pub_rpt);
+    iotcl_free(iotcl_mqtt_get_config()->pub_ack);
+    iotcl_free(iotcl_mqtt_get_config()->sub_c2d);
+    iotcl_mqtt_get_config()->host = iotcl_strdup(host); // get the command argument
+    iotcl_mqtt_get_config()->pub_rpt = iotcl_strdup("qualification");
+    iotcl_mqtt_get_config()->pub_ack = iotcl_strdup("qualification");
+    iotcl_mqtt_get_config()->sub_c2d = iotcl_strdup("qualification");
 
 
-	TickType_t last_connected = xTaskGetTickCount();
-	while (true) {
-		if (!iotconnect_sdk_is_connected()) {
-        	iotconnect_sdk_disconnect();
+    TickType_t last_connected = xTaskGetTickCount();
+    while (true) {
+        if (!iotconnect_sdk_is_connected()) {
+            iotconnect_sdk_disconnect();
             vTaskDelay(pdMS_TO_TICKS(10000));
-        	iotconnect_sdk_connect();
-			last_connected = xTaskGetTickCount();
-		}
-		IotclMessageHandle msg = iotcl_telemetry_create();
-    	iotcl_telemetry_set_string(msg, "qualification", "true");
-    	iotcl_mqtt_send_telemetry(msg, false);
+            iotconnect_sdk_connect();
+            last_connected = xTaskGetTickCount();
+        }
+        IotclMessageHandle msg = iotcl_telemetry_create();
+        iotcl_telemetry_set_string(msg, "qualification", "true");
+        iotcl_mqtt_send_telemetry(msg, false);
         iotcl_telemetry_destroy(msg);
         iotconnect_sdk_poll_inbound_mq(5000);
         if (((xTaskGetTickCount() - last_connected) * portTICK_PERIOD_MS) > 60000) {
-        	printf("----------\nWARNING: Connection lingered for too long. Restarting the connection\n----------\n");
-        	iotconnect_sdk_disconnect();
+            printf("----------\nWARNING: Connection lingered for too long. Restarting the connection\n----------\n");
+            iotconnect_sdk_disconnect();
         }
-	}
+    }
 }
 
 static void on_command_intercept(IotclC2dEventData data) {
@@ -68,14 +68,14 @@ static void on_command_intercept(IotclC2dEventData data) {
 
     // Even if in qualification mode, notify the application so it can stop any background activity
     if (config.callbacks.cmd_cb) {
-		config.callbacks.cmd_cb(data);
-	}
+        config.callbacks.cmd_cb(data);
+    }
 
     if (command && (0 == strncmp(QUALIFICATION_START_PREFIX_CMD, command, strlen(QUALIFICATION_START_PREFIX_CMD)))) {
-    	const char* qual_host = &command[strlen(QUALIFICATION_START_PREFIX_CMD)];
-    	// This function should block forever and not allow the main application loop to continue
-    	// the called function will check the host parameter
-    	iotc_qualification_start(qual_host);
+        const char* qual_host = &command[strlen(QUALIFICATION_START_PREFIX_CMD)];
+        // This function should block forever and not allow the main application loop to continue
+        // the called function will check the host parameter
+        iotc_qualification_start(qual_host);
     }
 }
 #endif // IOTC_AWS_DEVICE_QUALIFICATION
@@ -103,7 +103,7 @@ static void dump_response(const char *message, IotConnectHttpResponse *response)
     if (response->data) {
         printf(" Response was:\n----\n%s\n----\n", response->data);
     } else {
-    	printf(" Response was empty\n");
+        printf(" Response was empty\n");
     }
 }
 
@@ -130,23 +130,23 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
     int status;
     switch (ct) {
         case IOTC_CT_AWS:
-        	// TEMPORARY HACK UNTIL WE SORT OUT DISCOVERY URL
-        	// Shortcut to avoid full case insensitive match.
-        	// Hopefully the user doesn't enter something with mixed case
-        	if (0 == strcmp("POC", env) || 0 == strcmp("poc", env)) {
+            // TEMPORARY HACK UNTIL WE SORT OUT DISCOVERY URL
+            // Shortcut to avoid full case insensitive match.
+            // Hopefully the user doesn't enter something with mixed case
+            if (0 == strcmp("POC", env) || 0 == strcmp("poc", env)) {
                 status = iotcl_dra_discovery_init_url_with_host(&discovery_url, "awsdiscovery.iotconnect.io", cpid, env);
-        	} else {
+            } else {
                 status = iotcl_dra_discovery_init_url_with_host(&discovery_url, "discoveryconsole.iotconnect.io", cpid, env);
-        	}
-        	if (IOTCL_SUCCESS == status) {
-            	printf("Using AWS discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
-        	}
+            }
+            if (IOTCL_SUCCESS == status) {
+                printf("Using AWS discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
+            }
             break;
         case IOTC_CT_AZURE:
             status = iotcl_dra_discovery_init_url_azure(&discovery_url, cpid, env);
-        	if (IOTCL_SUCCESS == status) {
-            	printf("Using Azure discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
-        	}
+            if (IOTCL_SUCCESS == status) {
+                printf("Using Azure discovery URL %s\n", iotcl_dra_url_get_url(&discovery_url));
+            }
             break;
         default:
         printf("Unknown connection type %d\n", ct);
@@ -159,8 +159,8 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
 
     iotconnect_https_request(&response,
                              iotcl_dra_url_get_hostname(&discovery_url),
-							 iotcl_dra_url_get_resource(&discovery_url),
-							 NULL
+                             iotcl_dra_url_get_resource(&discovery_url),
+                             NULL
     );
 
     status = validate_response(&response);
@@ -182,8 +182,8 @@ static int run_http_identity(IotConnectConnectionType ct, const char* duid, cons
 
     iotconnect_https_request(&response,
                              iotcl_dra_url_get_hostname(&identity_url),
-							 iotcl_dra_url_get_resource(&identity_url),
-							 NULL
+                             iotcl_dra_url_get_resource(&identity_url),
+                             NULL
     );
 
     status = validate_response(&response);
@@ -231,8 +231,8 @@ void iotconnect_sdk_mqtt_send_cb(const char *topic, const char *json_str) {
 }
 
 cy_rslt_t iotconnect_sdk_disconnect() {
-	iotc_mq_deregister();
-	iotc_mq_flush();
+    iotc_mq_deregister();
+    iotc_mq_flush();
     return (cy_rslt_t) iotc_mqtt_client_disconnect();
 }
 
@@ -247,14 +247,14 @@ bool iotconnect_sdk_is_connected(void) {
 }
 
 void iotconnect_sdk_poll_inbound_mq(cy_time_t timeout_ms) {
-	iotc_mq_process(timeout_ms);
+    iotc_mq_process(timeout_ms);
 }
 
 cy_rslt_t iotconnect_sdk_connect(void) {
     IotConnectMqttConfig mqtt_config = { 0 };
     if (iotc_mqtt_client_is_connected()) {
-    	printf("ERROR: MQTT Client is already connected!\n");
-    	return (cy_rslt_t) IOTCL_ERR_FAILED;
+        printf("ERROR: MQTT Client is already connected!\n");
+        return (cy_rslt_t) IOTCL_ERR_FAILED;
     }
     mqtt_config.x509_config = &(config.x509_config);
     mqtt_config.connection_type = config.connection_type;
@@ -262,7 +262,7 @@ cy_rslt_t iotconnect_sdk_connect(void) {
     mqtt_config.status_cb = config.callbacks.status_cb ? config.callbacks.status_cb : default_on_connection_status;
     cy_rslt_t ret_cy = iotc_mqtt_client_init(&mqtt_config);
     if (ret_cy) {
-		printf("Failed to connect!\n");
+        printf("Failed to connect!\n");
         return (cy_rslt_t) IOTCL_ERR_FAILED;
     }
     iotc_mq_register(on_mqtt_mq_message);
@@ -270,20 +270,20 @@ cy_rslt_t iotconnect_sdk_connect(void) {
 }
 
 int iotconnect_sdk_init(IotConnectClientConfig *c) {
-	int status;
+    int status;
 
     memcpy(&config, c, sizeof(IotConnectClientConfig));
-	// We use const to note to he user that they can use constants,
-	// but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
+    // We use const to note to he user that they can use constants,
+    // but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
     config.cpid = (const char *) iotcl_strdup(c->cpid);
     config.env = (const char *) iotcl_strdup(c->env);
     config.duid = (const char *) iotcl_strdup(c->duid);
 
     // initialize the queue first so we can safely deinit below without crashing.
     cy_rslt_t result = iotc_mq_init(c->mq_max_messages);
-	if (CY_RSLT_SUCCESS != result) {
-		return result;
-	}
+    if (CY_RSLT_SUCCESS != result) {
+        return result;
+    }
 
     if (!c->env || !c->cpid || !c->duid) {
         printf("Error: Device configuration is invalid. Configuration values for env, cpid and duid are required!\n");
@@ -303,16 +303,16 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
     }
 
     IotclClientConfig iotcl_cfg;
-	iotcl_init_client_config(&iotcl_cfg);
-	iotcl_cfg.device.cpid = c->cpid;
-	iotcl_cfg.device.duid = c->duid;
-	iotcl_cfg.device.instance_type = IOTCL_DCT_CUSTOM;
-	iotcl_cfg.mqtt_send_cb = iotconnect_sdk_mqtt_send_cb;
-	iotcl_cfg.events.ota_cb = c->callbacks.ota_cb;
+    iotcl_init_client_config(&iotcl_cfg);
+    iotcl_cfg.device.cpid = c->cpid;
+    iotcl_cfg.device.duid = c->duid;
+    iotcl_cfg.device.instance_type = IOTCL_DCT_CUSTOM;
+    iotcl_cfg.mqtt_send_cb = iotconnect_sdk_mqtt_send_cb;
+    iotcl_cfg.events.ota_cb = c->callbacks.ota_cb;
 #ifdef IOTC_AWS_DEVICE_QUALIFICATION
-	iotcl_cfg.events.cmd_cb = on_command_intercept;
+    iotcl_cfg.events.cmd_cb = on_command_intercept;
 #else
-	iotcl_cfg.events.cmd_cb = c->callbacks.cmd_cb;
+    iotcl_cfg.events.cmd_cb = c->callbacks.cmd_cb;
 #endif
 
     if (c->verbose) {
@@ -321,9 +321,9 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
         status = iotcl_init(&iotcl_cfg);
     }
 
-	status = run_http_identity(c->connection_type, c->duid, c->cpid, c->env);
+    status = run_http_identity(c->connection_type, c->duid, c->cpid, c->env);
     if (status) {
-		iotconnect_sdk_deinit();
+        iotconnect_sdk_deinit();
         return status;
     }
     printf("Identity response parsing successful.\n");
@@ -331,15 +331,15 @@ int iotconnect_sdk_init(IotConnectClientConfig *c) {
 }
 
 void iotconnect_sdk_deinit(void) {
-	if (iotconnect_sdk_is_connected()) {
-		iotconnect_sdk_disconnect();
-	}
-	iotc_mq_deinit();
-	// We use const to note to he user that they can use constants,
-	// but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
+    if (iotconnect_sdk_is_connected()) {
+        iotconnect_sdk_disconnect();
+    }
+    iotc_mq_deinit();
+    // We use const to note to he user that they can use constants,
+    // but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
     if (config.cpid) iotcl_free((char *) config.cpid);
     if (config.env) iotcl_free((char *) config.env);
     if (config.duid) iotcl_free((char *) config.duid);
     memset(&config, 0, sizeof(IotConnectClientConfig));
-	iotcl_deinit();
+    iotcl_deinit();
 }
