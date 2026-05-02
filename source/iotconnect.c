@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <time.h>
 #include <cJSON.h>
 
 // This defines enables prototype integration with iotc-c-lib v3.0.0
@@ -14,14 +16,23 @@
 
 #include "iotcl.h"
 #include "iotcl_util.h"
+#include "iotcl_certs.h"
 #include "iotcl_dra_discovery.h"
 #include "iotcl_dra_identity.h"
+#include "iotcl_dra_url.h"
+#include "iotcl_dra_credentials.h"
 #include "iotc_http_client.h"
 #include "iotc_mqtt_client.h"
 #include "iotc_mqtt_mq.h"
 #include "iotconnect.h"
 
 IotConnectClientConfig config = {0};
+
+// AWS creds cache. expiration is retained even after aws_creds is freed so that
+// seconds_until_expiry() keeps reporting against the last known expiration.
+static IotclDraCredentialsResult *aws_creds = NULL;
+static time_t aws_creds_expiration = 0;
+static bool aws_creds_ever_obtained = false;
 
 #ifdef IOTC_AWS_DEVICE_QUALIFICATION
 
@@ -337,6 +348,9 @@ void iotconnect_sdk_deinit(void) {
         iotconnect_sdk_disconnect();
     }
     iotc_mq_deinit();
+    iotconnect_sdk_aws_creds_free();
+    aws_creds_expiration = 0;
+    aws_creds_ever_obtained = false;
     // We use const to note to he user that they can use constants,
     // but internally we use our own copy that is not const in reality (just to avoid copying the same struct typedef)
     if (config.cpid) iotcl_free((char *) config.cpid);
@@ -344,4 +358,127 @@ void iotconnect_sdk_deinit(void) {
     if (config.duid) iotcl_free((char *) config.duid);
     memset(&config, 0, sizeof(IotConnectClientConfig));
     iotcl_deinit();
+}
+
+int iotconnect_sdk_obtain_aws_creds(void) {
+    if (config.connection_type != IOTC_CT_AWS) {
+        printf("ERROR: AWS creds are only available for IOTC_CT_AWS connection type.\n");
+        return IOTCL_ERR_CONFIG_ERROR;
+    }
+    if (!config.x509_config.device_cert || !config.x509_config.device_key) {
+        printf("ERROR: device_cert and device_key are required for mTLS creds request.\n");
+        return IOTCL_ERR_MISSING_VALUE;
+    }
+
+    IotclMqttConfig *mqtt_cfg = iotcl_mqtt_get_config();
+    if (!mqtt_cfg || !mqtt_cfg->aws.vs_creds_url) {
+        printf("ERROR: vs_creds_url is NULL. Enable Video Streaming and WebRTC option in the template.\n");
+        return IOTCL_ERR_CONFIG_MISSING;
+    }
+    if (!mqtt_cfg->client_id) {
+        printf("ERROR: MQTT client_id is NULL — cannot set %s header.\n", IOTCL_DRA_THING_NAME_HEADER);
+        return IOTCL_ERR_CONFIG_MISSING;
+    }
+
+    IotclDraUrlContext url_ctx = {0};
+    int status = iotcl_dra_url_init(&url_ctx, mqtt_cfg->aws.vs_creds_url);
+    if (status) {
+        printf("ERROR: Failed to parse vs_creds_url: %s\n", mqtt_cfg->aws.vs_creds_url);
+        return status;
+    }
+
+    IotConnectHttpResponse response = {0};
+    IotclDraCredentialsResult *new_creds = NULL;
+
+    IotConnectHttpHeader thing_hdr = {
+        .name = (char *) IOTCL_DRA_THING_NAME_HEADER,
+        .value = (char *) mqtt_cfg->client_id
+    };
+    IotConnectHttpOpts opts = {
+        .ca_cert = (char *) (config.x509_config.server_ca_cert ? config.x509_config.server_ca_cert : IOTCL_AMAZON_ROOT_CA1),
+        .cert = (char *) config.x509_config.device_cert,
+        .key = (char *) config.x509_config.device_key,
+        .headers = &thing_hdr,
+        .headers_len = 1
+    };
+
+    if (config.verbose) {
+        printf("IOTC: Requesting AWS creds via mTLS GET %s\n", iotcl_dra_url_get_url(&url_ctx));
+    }
+
+    unsigned int http_res = iotconnect_https_request_with_opts(
+        &response,
+        iotcl_dra_url_get_hostname(&url_ctx),
+        iotcl_dra_url_get_resource(&url_ctx),
+        NULL,
+        &opts
+    );
+    if (http_res != 0 || !response.data) {
+        printf("ERROR: AWS creds HTTPS request failed (0x%08x)\n", http_res);
+        status = IOTCL_ERR_FAILED;
+        goto cleanup;
+    }
+
+    new_creds = (IotclDraCredentialsResult *) iotcl_malloc(sizeof(*new_creds));
+    if (!new_creds) {
+        printf("ERROR: Out of memory allocating creds result\n");
+        status = IOTCL_ERR_OUT_OF_MEMORY;
+        goto cleanup;
+    }
+    memset(new_creds, 0, sizeof(*new_creds));
+
+    status = iotcl_dra_json_credentials_parse(new_creds, response.data);
+    if (status) {
+        printf("ERROR: Failed to parse AWS creds JSON (status=%d).\n Response was:\n%s\n", status, response.data);
+        iotcl_free(new_creds);
+        new_creds = NULL;
+        goto cleanup;
+    }
+
+    // Replace cache without leaking
+    iotconnect_sdk_aws_creds_free();
+    aws_creds = new_creds;
+    aws_creds_expiration = new_creds->expiration;
+    aws_creds_ever_obtained = true;
+
+    if (config.verbose) {
+        printf("IOTC: AWS creds obtained. Expires at %s\n",
+            new_creds->expiration_str ? new_creds->expiration_str : "?");
+    }
+
+cleanup:
+    iotconnect_free_https_response(&response);
+    iotcl_dra_url_deinit(&url_ctx);
+    return status;
+}
+
+const IotclDraCredentialsResult *iotconnect_sdk_aws_creds_get(void) {
+    if (!aws_creds) {
+        return NULL;
+    }
+    if (aws_creds_expiration != 0 && time(NULL) >= aws_creds_expiration) {
+        printf("ERROR: Cached AWS creds have expired. Freeing.\n");
+        iotconnect_sdk_aws_creds_free();
+        return NULL;
+    }
+    return aws_creds;
+}
+
+int iotconnect_sdk_aws_creds_seconds_until_expiry(void) {
+    if (!aws_creds_ever_obtained) {
+        return -1;
+    }
+    time_t now = time(NULL);
+    if (now >= aws_creds_expiration) {
+        return 0;
+    }
+    return (int)(aws_creds_expiration - now);
+}
+
+void iotconnect_sdk_aws_creds_free(void) {
+    if (aws_creds) {
+        iotcl_dra_json_credentials_free(aws_creds);
+        iotcl_free(aws_creds);
+        aws_creds = NULL;
+    }
 }
