@@ -10,7 +10,6 @@
 #include "cy_result.h"
 #include "iotconnect.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,8 +17,8 @@ extern "C" {
 typedef void (*IotConnectMqttInboundMessageCallback)(const char* topic, const char *message, size_t message_len);
 
 typedef struct {
-	IotConnectConnectionType connection_type; // AWS or Azure
-	IotConnectX509Config *x509_config; // Pointer to IoTConnect c509 configuration
+    IotConnectConnectionType connection_type; // AWS or Azure
+    IotConnectX509Config *x509_config; // Pointer to IoTConnect c509 configuration
     IotConnectMqttInboundMessageCallback mqtt_inbound_msg_cb; // callback for inbound MQTT messages
     IotConnectStatusCallback status_cb; // callback for connection status
 } IotConnectMqttConfig;

@@ -7,8 +7,8 @@
 #define IOTC_MQTT_MQ_H
 
 #include "cy_result.h"
-#include "cyabs_rtos.h" 	// for cy_time_t
-#include "iotc_mqtt_client.h" 	// for IotConnectMqttInboundMessageCallback
+#include "cyabs_rtos.h"     // for cy_time_t
+#include "iotc_mqtt_client.h"   // for IotConnectMqttInboundMessageCallback
 #include "iotconnect.h"
 
 #ifdef __cplusplus

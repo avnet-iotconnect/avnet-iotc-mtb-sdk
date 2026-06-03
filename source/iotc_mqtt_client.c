@@ -50,51 +50,51 @@ static void mqtt_event_callback(cy_mqtt_t mqtt_handle, cy_mqtt_event_t event, vo
     (void) mqtt_handle;
     (void) user_data;
     switch (event.type) {
-		case CY_MQTT_EVENT_TYPE_DISCONNECT: {
-			/* MQTT connection with the MQTT broker is broken as the client
-			 * is unable to communicate with the broker. Set the appropriate
-			 * command to be sent to the MQTT task.
-			 */
-			printf("Unexpectedly disconnected from MQTT broker!\n");
+        case CY_MQTT_EVENT_TYPE_DISCONNECT: {
+            /* MQTT connection with the MQTT broker is broken as the client
+             * is unable to communicate with the broker. Set the appropriate
+             * command to be sent to the MQTT task.
+             */
+            printf("Unexpectedly disconnected from MQTT broker!\n");
 
-			is_connected = false;
-			/* Send the message to the MQTT client task to handle the
-			 * disconnection.
-			 */
-			if (status_cb) {
-				status_cb(IOTC_CS_MQTT_DISCONNECTED);
-			}
-			break;
-		}
+            is_connected = false;
+            /* Send the message to the MQTT client task to handle the
+             * disconnection.
+             */
+            if (status_cb) {
+                status_cb(IOTC_CS_MQTT_DISCONNECTED);
+            }
+            break;
+        }
 
-		case CY_MQTT_EVENT_TYPE_SUBSCRIPTION_MESSAGE_RECEIVE: {
-			cy_mqtt_publish_info_t *received_msg;
+        case CY_MQTT_EVENT_TYPE_SUBSCRIPTION_MESSAGE_RECEIVE: {
+            cy_mqtt_publish_info_t *received_msg;
 
 
-			/* Incoming MQTT message has been received. Send this message to
-			 * the subscriber callback function to handle it.
-			 */
-			received_msg = &(event.data.pub_msg.received_message);
-			if (mqtt_inbound_msg_cb && !is_disconnect_requested) {
-				// we must ensure that this is a null-terminated string here
-				char * topic_str = malloc(received_msg->topic_len + 1);
-				if (!topic_str) {
-					printf("Out of memory while trying to allocate the topic string!\n");
-					break;
-				}
-				memcpy(topic_str, received_msg->topic, received_msg->topic_len);
-				topic_str[received_msg->topic_len] = 0; // terminate it
-				mqtt_inbound_msg_cb(received_msg->topic, received_msg->payload, received_msg->payload_len);
-				free(topic_str);
-			}
-			is_disconnect_requested = false;
-			break;
-		}
-		default: {
-			/* Unknown MQTT event */
-			printf("Unknown Event received from MQTT callback!\n");
-			break;
-		}
+            /* Incoming MQTT message has been received. Send this message to
+             * the subscriber callback function to handle it.
+             */
+            received_msg = &(event.data.pub_msg.received_message);
+            if (mqtt_inbound_msg_cb && !is_disconnect_requested) {
+                // we must ensure that this is a null-terminated string here
+                char * topic_str = malloc(received_msg->topic_len + 1);
+                if (!topic_str) {
+                    printf("Out of memory while trying to allocate the topic string!\n");
+                    break;
+                }
+                memcpy(topic_str, received_msg->topic, received_msg->topic_len);
+                topic_str[received_msg->topic_len] = 0; // terminate it
+                mqtt_inbound_msg_cb(received_msg->topic, received_msg->payload, received_msg->payload_len);
+                free(topic_str);
+            }
+            is_disconnect_requested = false;
+            break;
+        }
+        default: {
+            /* Unknown MQTT event */
+            printf("Unknown Event received from MQTT callback!\n");
+            break;
+        }
     }
 }
 
@@ -102,9 +102,9 @@ static cy_rslt_t mqtt_subscribe(IotclMqttConfig *mc, cy_mqtt_qos_t qos) {
     /* Status variable */
 
     cy_mqtt_subscribe_info_t subscribe_info = {
-    		.qos = qos, //
-			.topic = mc->sub_c2d, //
-			.topic_len = strlen(mc->sub_c2d) //
+            .qos = qos, //
+            .topic = mc->sub_c2d, //
+            .topic_len = strlen(mc->sub_c2d) //
     };
 
     cy_rslt_t result = 1;
@@ -127,16 +127,16 @@ static cy_rslt_t mqtt_connect(IotclMqttConfig *mc) {
     cy_rslt_t result = CY_RSLT_SUCCESS;
 
     cy_mqtt_connect_info_t connection_info = { //
-    		.client_id = mc->client_id, //
-			.client_id_len = strlen(mc->client_id), //
-			.username = mc->username, //
-			.username_len = mc->username ? strlen(mc->username) : 0, //
-			.password = NULL, //
-			.password_len = 0, //
-			.clean_session = true, //
-			.keep_alive_sec = 55, //
-			.will_info = NULL //
-	};
+            .client_id = mc->client_id, //
+            .client_id_len = strlen(mc->client_id), //
+            .username = mc->username, //
+            .username_len = mc->username ? strlen(mc->username) : 0, //
+            .password = NULL, //
+            .password_len = 0, //
+            .clean_session = true, //
+            .keep_alive_sec = 55, //
+            .will_info = NULL //
+    };
 
     /* Generate a unique client identifier with 'MQTT_CLIENT_IDENTIFIER' string
      * as a prefix if the `GENERATE_UNIQUE_CLIENT_ID` macro is enabled.
@@ -158,9 +158,9 @@ static cy_rslt_t mqtt_connect(IotclMqttConfig *mc) {
         unsigned int backoff = (rand() % IOTC_MQTT_CONN_RETRY_INTERVAL_MS) + 1;
 #endif
         printf("MQTT connection failed with error code 0x%08x. Retrying in %u ms. Retries left: %d\n",
-        		(int) result,
-        		backoff,
-				(int) (IOTC_MAX_MQTT_CONN_RETRIES - retry_count - 1));
+                (int) result,
+                backoff,
+                (int) (IOTC_MAX_MQTT_CONN_RETRIES - retry_count - 1));
         vTaskDelay(pdMS_TO_TICKS(backoff));
     }
 
@@ -176,15 +176,15 @@ static cy_rslt_t iotc_cleanup_mqtt() {
     is_connected = false;
 
     if (mqtt_connection) {
-		result = cy_mqtt_disconnect(mqtt_connection);
-		if (result) {
-			printf("Failed to disconnect the MQTT client. Error was:0x%08x\n", (unsigned int) result);
-			is_disconnect_requested = false;
+        result = cy_mqtt_disconnect(mqtt_connection);
+        if (result) {
+            printf("Failed to disconnect the MQTT client. Error was:0x%08x\n", (unsigned int) result);
+            is_disconnect_requested = false;
 
-			// only overwrite ret if last result was a success.
-			// Do not write the oldest failure
-			ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
-		}
+            // only overwrite ret if last result was a success.
+            // Do not write the oldest failure
+            ret = ret == CY_RSLT_SUCCESS ? result : CY_RSLT_SUCCESS;
+        }
 
         result = cy_mqtt_delete(mqtt_connection);
         if (result) {
@@ -222,11 +222,11 @@ cy_rslt_t iotc_mqtt_client_publish(const char* topic, const char *payload, int q
 
     /* Structure to store publish message information. */
     cy_mqtt_publish_info_t publish_info = { //
-    		.qos = (cy_mqtt_qos_t) qos, //
-			.topic = topic, //
-			.topic_len = strlen(topic), //
-			.retain = false, //
-			.dup = false //
+            .qos = (cy_mqtt_qos_t) qos, //
+            .topic = topic, //
+            .topic_len = strlen(topic), //
+            .retain = false, //
+            .dup = false //
     };
 
     /* Publish the data received over the message queue. */
@@ -248,10 +248,12 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
 
     IotclMqttConfig* mc = iotcl_mqtt_get_config();
     if (!mc) {
-    	return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
+        return CY_RSLT_MODULE_MQTT_ERROR; // called function will print the error
     }
 
-    if (!mc->sub_c2d)
+    if (!mc->sub_c2d) {
+        return CY_RSLT_MODULE_MQTT_BADARG;
+    }
 
     mqtt_inbound_msg_cb = NULL;
     status_cb = NULL;
@@ -268,9 +270,9 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     is_mqtt_initialized = true;
 
     cy_mqtt_broker_info_t broker_info = { //
-    		.hostname = mc->host, //
-			.hostname_len = strlen(mc->host),
-			.port = 8883 //
+            .hostname = mc->host, //
+            .hostname_len = strlen(mc->host),
+            .port = 8883 //
     };
 
     cy_awsport_ssl_credentials_t security_info = { 0 };
@@ -279,40 +281,40 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
     security_info.sni_host_name_size = strlen(mc->host) + 1; // yes, +1 !
 
     if (c->x509_config->server_ca_cert) {
-    	security_info.root_ca = c->x509_config->server_ca_cert;
+        security_info.root_ca = c->x509_config->server_ca_cert;
     } else {
-    	switch(c->connection_type) {
-    	case IOTC_CT_AWS:
-    		security_info.root_ca = IOTCL_AMAZON_ROOT_CA1;
-    		break;
-    	case IOTC_CT_AZURE:
-    		security_info.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
-    		break;
-    	default:
-    		// the SDK will check, but just in case
-    		printf("connection_type must be set Azure or AWS\n");
-        	return CY_RSLT_MODULE_MQTT_BADARG;
-    	}
+        switch (c->connection_type) {
+        case IOTC_CT_AWS:
+            security_info.root_ca = IOTCL_AMAZON_ROOT_CA1;
+            break;
+        case IOTC_CT_AZURE:
+            security_info.root_ca = IOTCL_CERT_DIGICERT_GLOBAL_ROOT_G2;
+            break;
+        default:
+            // the SDK will check, but just in case
+            printf("connection_type must be set Azure or AWS\n");
+            return CY_RSLT_MODULE_MQTT_BADARG;
+        }
     }
     security_info.root_ca_size = strlen(security_info.root_ca) + 1;
 
-	security_info.client_cert = c->x509_config->device_cert;
-	security_info.client_cert_size = strlen(c->x509_config->device_cert) + 1;
-	security_info.private_key = c->x509_config->device_key;
+    security_info.client_cert = c->x509_config->device_cert;
+    security_info.client_cert_size = strlen(c->x509_config->device_cert) + 1;
+    security_info.private_key = c->x509_config->device_key;
     // NOTE: This could be an opaque key and not a PEM cert.
     // So if they user sets the size, trust them.
     // For PEM certs we would expect this size to be zero and use strlen.
     security_info.private_key_size = c->x509_config->device_key_size;
     if (0 == security_info.private_key_size) {
-	    security_info.private_key_size = strlen(c->x509_config->device_key) + 1;
+        security_info.private_key_size = strlen(c->x509_config->device_key) + 1;
     }
 
     /* Create the MQTT client instance. */
     result = cy_mqtt_create(
-    		mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, //
-			&security_info, &broker_info, //
-			MQTT_HANDLE_DESCRIPTOR, //
-			&mqtt_connection //
+            mqtt_network_buffer, MQTT_NETWORK_BUFFER_SIZE, //
+            &security_info, &broker_info, //
+            MQTT_HANDLE_DESCRIPTOR, //
+            &mqtt_connection //
     );
 
     if (result) {
@@ -321,8 +323,8 @@ cy_rslt_t iotc_mqtt_client_init(IotConnectMqttConfig *c) {
         return result;
     }
 
-	/* Register a MQTT event callback */
-	result = cy_mqtt_register_event_callback( mqtt_connection, (cy_mqtt_callback_t)mqtt_event_callback, NULL );
+    /* Register a MQTT event callback */
+    result = cy_mqtt_register_event_callback( mqtt_connection, (cy_mqtt_callback_t)mqtt_event_callback, NULL );
     if (result) {
         printf("Failed to register the MQTT callback! Error was:0x%08x\n", (unsigned int) result);
         iotc_cleanup_mqtt();
