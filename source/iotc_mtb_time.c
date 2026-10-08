@@ -31,6 +31,12 @@ static bool callback_received = false;
 void iotc_set_system_time_us(u32_t sec, u32_t us) {
     cy_rslt_t result;
     time_t secs_time_t = sec;
+    struct tm *rtc_time = gmtime(&secs_time_t);
+
+    if (NULL == rtc_time) {
+        printf("ERROR: Unable to convert SNTP time to RTC time.\n");
+        return;
+    }
 
     taskENTER_CRITICAL();
     /* HAL API version 2 and lower support dynamically allocating and initializing
@@ -40,14 +46,28 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     #if defined(MTB_HAL_API_VERSION) && ((MTB_HAL_API_VERSION) >= 3)
     mtb_time_rtc_ptr = mtb_clib_support_get_rtc();
     CY_ASSERT(NULL != mtb_time_rtc_ptr);
-    result = mtb_hal_rtc_write(mtb_time_rtc_ptr, gmtime(&secs_time_t));
+    if (NULL == mtb_time_rtc_ptr) {
+        taskEXIT_CRITICAL();
+        printf("ERROR: RTC instance is not configured.\n");
+        return;
+    }
+    result = mtb_hal_rtc_write(mtb_time_rtc_ptr, rtc_time);
     #else /* Older HAL versions define CYHAL_API_VERSION */
     result = cyhal_rtc_init(&cy_time_rtc_inst);
-    CY_ASSERT(CY_RSLT_SUCCESS == result);
+    if (CY_RSLT_SUCCESS != result) {
+        taskEXIT_CRITICAL();
+        printf("ERROR: Failed to initialize RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
+        return;
+    }
     cy_set_rtc_instance(&cy_time_rtc_inst); // becomes global clock
-    result = cyhal_rtc_write(&cy_time_rtc_inst, gmtime(&secs_time_t));
+    result = cyhal_rtc_write(&cy_time_rtc_inst, rtc_time);
     #endif
     CY_ASSERT(CY_RSLT_SUCCESS == result);
+    if (CY_RSLT_SUCCESS != result) {
+        taskEXIT_CRITICAL();
+        printf("ERROR: Failed to update RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
+        return;
+    }
     callback_received = true;
     taskEXIT_CRITICAL();
 }
