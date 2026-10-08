@@ -59,7 +59,7 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
         result = cyhal_rtc_init(&cy_time_rtc_inst);
         if (CY_RSLT_SUCCESS != result) {
             taskEXIT_CRITICAL();
-            printf("ERROR: Failed to initialize RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
+            printf("ERROR: Failed to initialize RTC, code 0x%lx.\n", ( unsigned long ) CY_RSLT_GET_CODE(result));
             return;
         }
         cy_time_rtc_initialized = true;
@@ -70,7 +70,7 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     CY_ASSERT(CY_RSLT_SUCCESS == result);
     if (CY_RSLT_SUCCESS != result) {
         taskEXIT_CRITICAL();
-        printf("ERROR: Failed to update RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
+        printf("ERROR: Failed to update RTC, code 0x%lx.\n", ( unsigned long ) CY_RSLT_GET_CODE(result));
         return;
     }
     callback_received = true;
