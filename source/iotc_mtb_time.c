@@ -24,6 +24,7 @@
 static mtb_hal_rtc_t* mtb_time_rtc_ptr;
 #else
 static cyhal_rtc_t cy_time_rtc_inst;
+static bool cy_time_rtc_initialized;
 #endif
 
 static bool callback_received = false;
@@ -54,13 +55,16 @@ void iotc_set_system_time_us(u32_t sec, u32_t us) {
     }
     result = mtb_hal_rtc_write(mtb_time_rtc_ptr, rtc_time);
     #else /* Older HAL versions define CYHAL_API_VERSION */
-    result = cyhal_rtc_init(&cy_time_rtc_inst);
-    if (CY_RSLT_SUCCESS != result) {
-        taskEXIT_CRITICAL();
-        printf("ERROR: Failed to initialize RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
-        return;
+    if (!cy_time_rtc_initialized) {
+        result = cyhal_rtc_init(&cy_time_rtc_inst);
+        if (CY_RSLT_SUCCESS != result) {
+            taskEXIT_CRITICAL();
+            printf("ERROR: Failed to initialize RTC, code 0x%lx.\n", CY_RSLT_GET_CODE(result));
+            return;
+        }
+        cy_time_rtc_initialized = true;
+        cy_set_rtc_instance(&cy_time_rtc_inst); // becomes global clock
     }
-    cy_set_rtc_instance(&cy_time_rtc_inst); // becomes global clock
     result = cyhal_rtc_write(&cy_time_rtc_inst, rtc_time);
     #endif
     CY_ASSERT(CY_RSLT_SUCCESS == result);
