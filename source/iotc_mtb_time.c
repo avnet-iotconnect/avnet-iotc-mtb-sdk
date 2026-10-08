@@ -31,14 +31,15 @@ static bool callback_received = false;
 void iotc_set_system_time_us(u32_t sec, u32_t us) {
     cy_rslt_t result;
     time_t secs_time_t = sec;
-    struct tm *rtc_time = gmtime(&secs_time_t);
+    struct tm *rtc_time;
 
+    taskENTER_CRITICAL();
+    rtc_time = gmtime(&secs_time_t);
     if (NULL == rtc_time) {
+        taskEXIT_CRITICAL();
         printf("ERROR: Unable to convert SNTP time to RTC time.\n");
         return;
     }
-
-    taskENTER_CRITICAL();
     /* HAL API version 2 and lower support dynamically allocating and initializing
     * an RTC instance if one is not already set. HAL API version 3 requires that
     * the RTC instance be allocated in the configurator and configured prior to this
