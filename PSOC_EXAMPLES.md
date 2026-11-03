@@ -14,6 +14,7 @@ Permanent link to this document:
 
 - [PSOC&trade; Edge E84 Examples](#psoc-edge-e84-examples)
 - [PSOC&trade; 6 Examples](#psoc-6-examples)
+- [Demos Within Multi-Model Repositories](#demos-within-multi-model-repositories)
 - [Supported Kits Cross-Reference](#supported-kits-cross-reference)
 - [Related Repositories](#related-repositories)
 - [Referencing This Document From an Example README](#referencing-this-document-from-an-example-readme)
@@ -55,6 +56,77 @@ Over-the-air updates are supported by the Basic Example only.
 | AI Baby Monitor | [avnet-iotc-mtb-ai-baby-monitor](https://github.com/avnet-iotconnect/avnet-iotc-mtb-ai-baby-monitor) | `CY8CKIT-062S2-AI` | 3.3.0 | ModusToolbox&trade; Machine Learning (MTBML) baby cry detection from the PDM/PCM microphone, with detection threshold and reporting interval commands. Use v3.3.0 or later. |
 | AI Imagimob Ready Models | [avnet-iotc-mtb-ai-imagimob-rm](https://github.com/avnet-iotconnect/avnet-iotc-mtb-ai-imagimob-rm) | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` (audio models only) | 1.1.0 | Compile-time selectable Imagimob Ready Models: siren, baby cry, alarm, cough and snore audio detection plus radar gesture detection (push, swipe up/down/left/right) on the AI Kit. Use v1.1.0 or later. |
 | AI Fall Detection | [avnet-iotc-mtb-ai-fall-detection](https://github.com/avnet-iotconnect/avnet-iotc-mtb-ai-fall-detection) | `CY8CKIT-062S2-AI` | No tagged release (use `main`) | MTBML fall detection Ready Model using the on-board IMU, intended for wrist-mounted use with /IOTCONNECT rules for notifications. Not listed in the ModusToolbox&trade; Project Creator; clone and use "Browse for Application". |
+
+## Demos Within Multi-Model Repositories
+
+Several repositories ship more than one demo. The demo is chosen at compile time with a make variable,
+so each build produces one demo at a time. The tables below list every selectable demo so that none are
+hidden behind a single repository row. Repositories not listed here contain exactly one demo.
+
+### avnet-iotc-mtb-psoc-edge-rm (PSOC&trade; Edge E84)
+
+Set `MODEL_SELECTION` in `common.mk`. Default is `BABYCRY_MODEL`.
+
+| Demo | `MODEL_SELECTION` | Sensor | Kits | Notes |
+|:-----|:------------------|:-------|:-----|:------|
+| Baby Cry Detection | `BABYCRY_MODEL` | PDM microphone | `KIT_PSE84_AI`, `KIT_PSE84_EVAL_EPC2` | Default model |
+| Cough Detection | `COUGH_MODEL` | PDM microphone | `KIT_PSE84_AI`, `KIT_PSE84_EVAL_EPC2` | |
+| Factory Alarm Detection | `ALARM_MODEL` | PDM microphone | `KIT_PSE84_AI`, `KIT_PSE84_EVAL_EPC2` | |
+| Siren Detection | `SIREN_MODEL` | PDM microphone | `KIT_PSE84_AI`, `KIT_PSE84_EVAL_EPC2` | |
+| Gesture Classification | `GESTURE_MODEL` | Radar | `KIT_PSE84_AI` only | Push, swipe up, down, left, right. Pre-built hex published for this demo. |
+| Fall Detection | `FALLDETECTION_MODEL` | BMI270 accelerometer | `KIT_PSE84_AI`, `KIT_PSE84_EVAL_EPC2` | Board worn on the wrist |
+| Direction of Arrival (Sound) | `DIRECTIONOFARRIVAL_MODEL` | Microphone array | - | Present in the makefile but not supported at the moment |
+
+### avnet-iotc-mtb-psoc-edge-psa-tfm (PSOC&trade; Edge E84)
+
+Set `MODEL_SELECTION` in `common.mk`. Default is `MOTION_SENSOR`. Kit is `KIT_PSE84_EVAL_EPC2`.
+
+| Demo | `MODEL_SELECTION` | Sensor | Notes |
+|:-----|:------------------|:-------|:------|
+| Board Orientation | `MOTION_SENSOR` | BMI270 IMU | Default. Non-AI orientation reporting (up, down, and so on) |
+| Fall Detection | `FALLDETECTION_MODEL` | BMI270 accelerometer | DEEPCRAFT&trade; Ready Model |
+| Cough, Alarm, Baby Cry, Direction of Arrival | `COUGH_MODEL`, `ALARM_MODEL`, `BABYCRY_MODEL`, `DIRECTIONOFARRIVAL_MODEL` | PDM microphone | Listed in the makefile but audio tasks are not supported in this project at present |
+| Gesture Classification | `GESTURE_MODEL` | Radar | Reserved for future boards, not supported on the EVAL kit |
+| Idle | `IDLE` | - | Test mode only, sends dummy IPC messages to CM33 |
+
+### avnet-iotc-mtb-psoc-edge-voice-assistant (PSOC&trade; Edge E84)
+
+Set `DEEPCRAFT_PROJECT_NAME` in `common.mk`. Default is `Smart_Lights_Demo`. Kits are `KIT_PSE84_AI` and `KIT_PSE84_EVAL_EPC2`.
+A custom project created with the DEEPCRAFT&trade; Voice Assistant cloud tool can be placed in `proj_cm55/va_models/` and selected the same way.
+
+| Demo | `DEEPCRAFT_PROJECT_NAME` | Notes |
+|:-----|:-------------------------|:------|
+| Smart Lights | `Smart_Lights_Demo` | Default. Tracks and reports per-room light levels driven by voice commands. Fully integrated with /IOTCONNECT telemetry. |
+| LED | `LED_Demo` | Reports basic voice command events only |
+| Cook Top | `Cooktop_Demo` | Reports basic voice command events only |
+
+### avnet-iotc-mtb-ai-imagimob-rm (PSOC&trade; 6)
+
+Set `MODEL_SELECTION` in the `Makefile`. Default is `SIREN_MODEL`.
+
+| Demo | `MODEL_SELECTION` | Sensor | Kits |
+|:-----|:------------------|:-------|:-----|
+| Siren Detection | `SIREN_MODEL` | PDM microphone | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` |
+| Baby Cry Detection | `BABYCRY_MODEL` | PDM microphone | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` |
+| Alarm Detection | `ALARM_MODEL` | PDM microphone | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` |
+| Cough Detection | `COUGH_MODEL` | PDM microphone | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` |
+| Snore Detection | `SNORE_MODEL` | PDM microphone | `CY8CKIT-062S2-AI`, `CY8CKIT-062S2-43012` |
+| Gesture Detection | `GESTURE_MODEL` | Radar | `CY8CKIT-062S2-AI` only. Push, swipe up, down, left, right |
+
+### Single-demo repositories
+
+For completeness, these repositories contain one demo each:
+
+| Repository | Demo |
+|:-----------|:-----|
+| avnet-iotc-mtb-psoc-edge-baby-monitor | Baby cry detection (DEEPCRAFT&trade; Studio starter model) |
+| avnet-iotc-mtb-psoc-edge-motion | Human activity detection: sitting, standing, walking, running, jumping |
+| avnet-iotc-mtb-psoc-edge-aivision-webrtc | Rock, paper, scissors hand gesture vision model with WebRTC video streaming |
+| avnet-iotc-mtb-basic-example | Wi-Fi MQTT telemetry, commands and OTA, no AI model |
+| avnet-iotc-mtb-xensiv-example | OPTIGA&trade; Trust M authentication with optional PAS CO2 sensor data |
+| avnet-iotc-mtb-ai-imu-example | Human activity detection: sitting, standing, walking, running, jumping |
+| avnet-iotc-mtb-ai-baby-monitor | Baby cry detection (MTBML flow) |
+| avnet-iotc-mtb-ai-fall-detection | Fall detection (MTBML Ready Model) |
 
 ## Supported Kits Cross-Reference
 
@@ -126,4 +198,6 @@ Status of the back-references (update this table as the example READMEs are chan
   version published in
   [avnet-iotc-mtb-ce-manifest](https://github.com/avnet-iotconnect/avnet-iotc-mtb-ce-manifest/blob/main/avnet-iotc-mtb-ce-manifest-fv2.xml).
 - When an example adds or drops kit support, update both the example row and the cross-reference table.
+- When a repository gains or loses a selectable model or demo, update its table under
+  "Demos Within Multi-Model Repositories" to match the make variable options in its makefile.
 - Kit names use the ModusToolbox&trade; `TARGET` spelling so they can be searched for directly in the manifest and Makefiles.
