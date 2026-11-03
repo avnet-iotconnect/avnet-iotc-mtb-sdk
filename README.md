@@ -6,6 +6,9 @@ for a reference PSOC6 implementation and OTA support.
 Refer to the [PSOC Edge Baby Monitor](https://github.com/avnet-iotconnect/avnet-iotc-mtb-psoc-edge-baby-monitor) project 
 for a reference PSOC Edge implementation.
 
+See [PSOC_EXAMPLES.md](PSOC_EXAMPLES.md) for the full index of /IOTCONNECT PSOC Edge E84 and PSOC 6 example projects
+and the kits each one supports.
+
 This code is primarily based on the 
 [mtb-example-wifi-mqtt-client](https://github.com/Infineon/mtb-example-wifi-mqtt-client)
 project on PSOC6, and the
